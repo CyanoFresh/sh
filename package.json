@@ -1,5 +1,6 @@
 {
   "name": "my-app-backend",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "websocket": "^1.0.28",
-    "ws": "^6.1.0"
+    "aedes": "^0.35.3",
+    "websocket-stream": "^5.1.2"
   }
 }
