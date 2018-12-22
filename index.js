@@ -1,94 +1,98 @@
 const ws = require('websocket-stream');
+const httpServer = require('http').createServer();
+const express = require('express');
+const cors = require('cors');
+const app = express();
 const aedes = require('aedes')();
-const mqttServer = require('net').createServer(aedes.handle);
-
 const config = require('./config');
 
 const MQTTPort = 1883;
 const WSPort = 8888;
+const HTTPPort = 80;
 
-const itemStates = {};
+const core = {
+  modules: {},
+  aedes,
+  config,
+  express,
+};
 
+app.use(cors());
+
+// Load modules
+core.config.modules.forEach((moduleConfig) => {
+  let moduleItems = [];
+
+  core.config.dashboard.forEach((itemGroup) => {
+    moduleItems = [
+      ...moduleItems,
+      ...itemGroup.items.filter((item) => item.module === moduleConfig.id),
+    ];
+  });
+
+  // Load module
+  try {
+    if (moduleConfig.local) {
+      core.modules[moduleConfig.id] = require(`./modules/${moduleConfig.id}`)(moduleConfig, moduleItems, core);
+    }
+
+    console.log(`Module ${moduleConfig.id} loaded`);
+  } catch (e) {
+    console.log(`Module ${moduleConfig.id} not loaded`);
+  }
+});
+
+// HTTP
+app.get('/api/state', (req, res, next) => {
+  const sendState = { dashboard: config.dashboard, modules: config.modules };
+
+  sendState.dashboard.forEach((itemGroup, groupIndex) => {
+    sendState.dashboard[groupIndex].items.forEach((item, itemIndex) => {
+      const module = core.modules[item.module];
+
+      sendState.dashboard[groupIndex].items[itemIndex] = {
+        ...item,
+        ...module.getState(item.id),
+      };
+    });
+  });
+
+  res.send(sendState);
+});
+
+// MQTT logic:
 aedes.authenticate = (client, username, password, callback) => {
   client.isDevice = username === '1';
 
-  return callback(null, true);
+  callback(null, true);
 };
 
-setInterval(() => {
-  console.log(itemStates);
-}, 10000);
-
-// aedes.on('publish', (packet, client) => {
-//   if (client) {
-//     try {
-//       const data = JSON.parse(packet.payload.toString());
-//
-//       console.log('json from client', client.id, data);
-//
-//       if (packet.topic === 'switch/my-room_switch/set') {
-//         itemStates['my-room_switch'] = {
-//           state: data.state,
-//         };
-//
-//         aedes.publish({
-//           topic: 'switch/my-room_switch',
-//           payload: JSON.stringify(itemStates['my-room_switch']),
-//         }, () => console.log('sent'));
-//       }
-//     } catch (e) {
-//       console.log('from client', client.id, packet.payload);
-//     }
-//   }
-// });
-//
-// aedes.on('clientDisconnect', (client) => {
-//   console.log(`Client Disconnected ${client.id}`);
-// });
-//
-// const getUserInitialState = () => {
-//   const state = { ...config };
-//
-//   state.dashboard = state.dashboard.map((itemGroup) => {
-//     const newItemGroup = { ...itemGroup };
-//
-//     newItemGroup.items = itemGroup.items.map((item) => {
-//       return {
-//         ...item,
-//         ...itemStates[item.id],
-//       };
-//     });
-//
-//     return newItemGroup;
-//   });
-//
-//   console.log(state);
-//
-//   return state;
-// };
-//
-// aedes.on('subscribe', (subscriptions, client) => {
-//   if (client) {
-//     console.log('Client Subscribe', subscriptions, client.id);
-//
-//     if (!client.isDevice && subscriptions[0].topic === `user/${client.id}`) {
-//       client.publish({
-//         topic: `user/${client.id}`,
-//         payload: JSON.stringify(getUserInitialState()),
-//       }, () => console.log('sent initial state'));
-//     }
-//   }
-// });
-//
-// aedes.on('client', function(client) {
-//   console.log('Client connected', client.id);
-// });
-
-// Start servers
-mqttServer.listen(MQTTPort, function() {
-  console.log('MQTT server listening on port', MQTTPort);
+aedes.on('publish', (packet, client) => {
+  if (client) {
+    console.log(packet.topic, packet.payload.toString(), client.id);
+  }
 });
 
+aedes.on('client', (client) => {
+  if (client.isDevice) {
+    aedes.publish({
+      topic: `devices/${client.id}/set`,
+      payload: JSON.stringify({}),
+    });
+  }
+});
+
+const mqttServer = require('net').createServer(aedes.handle);
+
+// Start servers
+mqttServer.listen(MQTTPort, () => console.log('MQTT server listening on port', MQTTPort));
+
+app.listen(HTTPPort, () => console.log(`HTTP listening on port 8080!`));
+
 ws.createServer({
-  port: WSPort,
+  server: httpServer,
 }, aedes.handle);
+
+httpServer.listen(WSPort, function() {
+  console.log('websocket server listening on port', WSPort);
+});

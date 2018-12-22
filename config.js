@@ -1,7 +1,15 @@
 module.exports = {
   modules: [
     {
-      name: 'switch',
+      id: 'switch',
+      local: true,
+    },
+    {
+      id: 'variable',
+      local: true,
+    },
+    {
+      id: 'intercom',
       local: true,
     },
   ],
@@ -12,6 +20,8 @@ module.exports = {
       items: [
         { id: 'my-room_switch', module: 'switch', name: 'Switch 1' },
         { id: 'my-room_switch2', module: 'switch', name: 'Switch 2' },
+        { id: 'my-room_temperature', module: 'variable', name: 'Air Temperature', suffix: ' °C' },
+        { id: 'my-room_humidity', module: 'variable', name: 'Air Humidity', suffix: '%' },
       ],
     },
     {
@@ -19,6 +29,9 @@ module.exports = {
       name: 'Corridor',
       items: [
         { id: 'corridor_switch', module: 'switch', name: 'Switch 3' },
+        { id: 'corridor_temperature', module: 'variable', name: 'Air Temperature', suffix: ' °C' },
+        { id: 'corridor_humidity', module: 'variable', name: 'Air Humidity', suffix: '%' },
+        { id: 'corridor_intercom', module: 'intercom', name: 'Intercom' },
       ],
     },
   ],
