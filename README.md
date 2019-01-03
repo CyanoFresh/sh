@@ -21,7 +21,7 @@ Solomaha Home
 ### Variable
 
 - `variable/{ID}` - current value
-- `variable/{ID}/set` - update value *Experimental*
+- `variable/{ID}/set` - update value ***Experimental***
 
 ### RGB
 
@@ -34,6 +34,12 @@ Solomaha Home
         "red": 255,
         "green": 255,
         "blue": 255
+    }
+    ```
+
+    ```json
+    {
+        "mode": "rainbow"
     }
     ```
 
