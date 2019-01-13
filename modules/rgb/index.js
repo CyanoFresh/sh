@@ -5,7 +5,7 @@ class Rgb {
     this.id = 'rgb';
     this.name = 'Rgb';
     this.config = {
-      defaultState: { mode: MODE.COLOR, red: 0, green: 0, blue: 0 },
+      defaultState: { mode: MODE.COLOR, red: 0, green: 0, blue: 0, speed: 100, brightness: 100 },
       items,
       ...config,
     };

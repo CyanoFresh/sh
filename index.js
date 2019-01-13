@@ -14,7 +14,7 @@ const core = {
   modules: {},
   aedes,
   config,
-  express,
+  express: app,
 };
 
 app.use(cors());
@@ -23,12 +23,12 @@ app.use(cors());
 core.config.modules.forEach((moduleConfig) => {
   let moduleItems = [];
 
-  core.config.dashboard.forEach((itemGroup) => {
+  core.config.dashboard.forEach(room => room.items.forEach(itemGroup => {
     moduleItems = [
       ...moduleItems,
-      ...itemGroup.items.filter((item) => item.module === moduleConfig.id),
+      ...itemGroup.filter(item => item.module === moduleConfig.id),
     ];
-  });
+  }));
 
   // Load module
   try {
@@ -46,14 +46,17 @@ core.config.modules.forEach((moduleConfig) => {
 app.get('/api/state', (req, res, next) => {
   const sendState = { dashboard: config.dashboard, modules: config.modules };
 
-  sendState.dashboard.forEach((itemGroup, groupIndex) => {
-    sendState.dashboard[groupIndex].items.forEach((item, itemIndex) => {
-      const module = core.modules[item.module];
+  // Merge items config with state
+  sendState.dashboard.forEach((room, roomIndex) => {
+    room.items.forEach((itemGroup, itemGroupIndex) => {
+      itemGroup.forEach((item, itemIndex) => {
+        const module = core.modules[item.module];
 
-      sendState.dashboard[groupIndex].items[itemIndex] = {
-        ...item,
-        ...module.getState(item.id),
-      };
+        sendState.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
+          ...item,
+          ...module.getState(item.id),
+        };
+      });
     });
   });
 

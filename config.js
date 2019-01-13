@@ -19,30 +19,45 @@ module.exports = {
   ],
   dashboard: [
     {
-      id: 'my-room',
-      name: 'My Room',
+      id: 'room1',
+      name: 'Room One',
       items: [
-        { id: 'my-room_temperature', module: 'variable', name: 'Air Temperature', suffix: ' °C' },
-        { id: 'my-room_humidity', module: 'variable', name: 'Air Humidity', suffix: '%' },
-        { id: 'my-room_switch', module: 'switch', name: 'Main Light' },
-        { id: 'my-room_switch2', module: 'switch', name: 'Ambient Light' },
-        { id: 'my-room_rgb', module: 'rgb', name: 'Ambient Lights' },
+        [
+          { id: 'room1-air_temperature', module: 'variable', name: 'Air Temperature', suffix: ' °C' },
+          { id: 'room1-air_humidity', module: 'variable', name: 'Air Humidity', suffix: '%' },
+        ],
+        [
+          { id: 'room1-light_switch', module: 'switch', name: 'Main Light' },
+          { id: 'room1-secondary_switch', module: 'switch', name: 'Secondary Light' },
+          { id: 'room1-room_rgb', module: 'rgb', name: 'Mood Light' },
+        ],
       ],
     },
     {
       id: 'corridor',
       name: 'Corridor',
       items: [
-        { id: 'corridor_temperature', module: 'variable', name: 'Air Temperature', suffix: ' °C' },
-        { id: 'corridor_humidity', module: 'variable', name: 'Air Humidity', suffix: '%' },
-        { id: 'corridor_switch', module: 'switch', name: 'Light' },
-        { id: 'corridor_intercom', module: 'intercom', name: 'Intercom' },
+        [
+          { id: 'corridor-light_switch', module: 'switch', name: 'Light' },
+          { id: 'corridor-intercom', module: 'intercom', name: 'Intercom' },
+        ],
+      ],
+    },
+    {
+      id: 'balcony',
+      name: 'Balcony',
+      items: [
+        [
+          { id: 'balcony-air_temperature', module: 'variable', name: 'Air Temperature', suffix: ' °C' },
+          { id: 'balcony-air_humidity', module: 'variable', name: 'Air Humidity', suffix: '%' },
+          { id: 'balcony-air_pressure', module: 'variable', name: 'Air Pressure', suffix: ' hPa' },
+        ],
       ],
     },
   ],
   users: [
     {
-      id: 'cyanofresh',
+      id: 'CyanoFresh',
       password: 'qwerty',
       name: 'Alex',
     },
@@ -51,6 +66,6 @@ module.exports = {
     {
       id: 'my-room_table',
       password: 'hi',
-    }
+    },
   ],
 };

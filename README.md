@@ -21,7 +21,14 @@ Solomaha Home
 ### Variable
 
 - `variable/{ID}` - current value
-- `variable/{ID}/set` - update value ***Experimental***
+
+    ```json
+    {
+        "value": 26.6
+    }
+    ```
+    
+- `variable/{ID}/set` - update value ***[Experimental]***
 
 ### RGB
 
@@ -46,6 +53,13 @@ Solomaha Home
 ### Intercom
 
 - `intercom/{ID}` - current state
+    
+    ```json
+    {
+        "unlock": false,
+        "isRinging": true
+    }
+    ```
+    
 - `intercom/{ID}/unlock` - unlock command
-- `intercom/{ID}/answer` - answer command
 
