@@ -1,10 +1,11 @@
 const ws = require('websocket-stream');
-const httpServer = require('http').createServer();
 const express = require('express');
 const cors = require('cors');
-const app = express();
-const aedes = require('aedes')();
 const config = require('./config');
+
+const httpServer = require('http').createServer();
+const aedes = require('aedes')();
+const app = express();
 
 const MQTTPort = 1883;
 const WSPort = 8888;
@@ -18,6 +19,9 @@ const core = {
 };
 
 app.use(cors());
+app.use(express.json());
+
+const auth = require('./auth')(core);
 
 // Load modules
 core.config.modules.forEach((moduleConfig) => {
@@ -43,31 +47,60 @@ core.config.modules.forEach((moduleConfig) => {
 });
 
 // HTTP
-app.get('/api/state', (req, res, next) => {
-  const sendState = { dashboard: config.dashboard, modules: config.modules };
+app.get(
+  '/api/state',
+  auth.authenticated,
+  (req, res) => {
+    const sendState = {
+      dashboard: config.dashboard,
+      modules: config.modules,
+    };
 
-  // Merge items config with state
-  sendState.dashboard.forEach((room, roomIndex) => {
-    room.items.forEach((itemGroup, itemGroupIndex) => {
-      itemGroup.forEach((item, itemIndex) => {
-        const module = core.modules[item.module];
+    // Merge items config with state
+    sendState.dashboard.forEach((room, roomIndex) => {
+      room.items.forEach((itemGroup, itemGroupIndex) => {
+        itemGroup.forEach((item, itemIndex) => {
+          const module = core.modules[item.module];
 
-        sendState.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
-          ...item,
-          ...module.getState(item.id),
-        };
+          sendState.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
+            ...item,
+            ...module.getState(item.id),
+          };
+        });
       });
     });
-  });
 
-  res.send(sendState);
+    return res.send(sendState);
+  },
+);
+
+app.use((err, req, res, next) => {
+  return res.status(err.status || 500).json({
+    success: false,
+    message: err.message,
+    ...err,
+  });
 });
 
 // MQTT logic:
 aedes.authenticate = (client, username, password, callback) => {
   client.isDevice = username === '1';
 
-  callback(null, true);
+  if (client.isDevice) {
+    return callback(null, true);
+  } else {
+    console.log('auth:', client.id, password.toString());
+
+    if (auth.authenticate(password.toString())) {
+      return callback(null, true);
+    }
+
+    const error = new Error('Auth error');
+
+    error.returnCode = 4;
+
+    return callback(error, null);
+  }
 };
 
 aedes.on('publish', (packet, client) => {

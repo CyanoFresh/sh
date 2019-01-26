@@ -29,7 +29,8 @@ module.exports = {
         [
           { id: 'room1-light_switch', module: 'switch', name: 'Main Light' },
           { id: 'room1-secondary_switch', module: 'switch', name: 'Secondary Light' },
-          { id: 'room1-room_rgb', module: 'rgb', name: 'Mood Light' },
+          { id: 'room1-rgb', module: 'rgb', name: 'Mood Light' },
+          { id: 'room1-rgb2', module: 'rgb', name: 'Mood Light 2' },
         ],
       ],
     },
@@ -55,9 +56,13 @@ module.exports = {
       ],
     },
   ],
+  ports: {},
+  secret: {
+    jwt: 'sdfjkdgkkjhvbdvjhkjhdsfjkhbfsddsf',
+  },
   users: [
     {
-      id: 'CyanoFresh',
+      id: 'cyanofresh',
       password: 'qwerty',
       name: 'Alex',
     },
