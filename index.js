@@ -7,10 +7,6 @@ const httpServer = require('http').createServer();
 const aedes = require('aedes')();
 const app = express();
 
-const MQTTPort = 1883;
-const WSPort = 8888;
-const HTTPPort = 80;
-
 const core = {
   modules: {},
   aedes,
@@ -21,37 +17,18 @@ const core = {
 app.use(cors());
 app.use(express.json());
 
-const auth = require('./auth')(core);
-
-// Load modules
-core.config.modules.forEach((moduleConfig) => {
-  let moduleItems = [];
-
-  core.config.dashboard.forEach(room => room.items.forEach(itemGroup => {
-    moduleItems = [
-      ...moduleItems,
-      ...itemGroup.filter(item => item.module === moduleConfig.id),
-    ];
-  }));
-
-  // Load module
-  try {
-    if (moduleConfig.local) {
-      core.modules[moduleConfig.id] = require(`./modules/${moduleConfig.id}`)(moduleConfig, moduleItems, core);
-    }
-
-    console.log(`Module ${moduleConfig.id} loaded`);
-  } catch (e) {
-    console.log(`Module ${moduleConfig.id} not loaded`);
-  }
-});
+const auth = require('./utils/auth')(core);
 
 // HTTP
-app.get(
-  '/api/state',
-  auth.authenticated,
+const apiRouter = express.Router();
+
+apiRouter.use(auth.authenticated);
+
+apiRouter.get(
+  '/state',
   (req, res) => {
     const sendState = {
+      ok: true,
       dashboard: config.dashboard,
       modules: config.modules,
     };
@@ -74,6 +51,13 @@ app.get(
   },
 );
 
+core.apiRouter = apiRouter;
+
+require('./utils/modules')(core);
+
+app.use('/api', apiRouter);
+
+// Error handler
 app.use((err, req, res, next) => {
   return res.status(err.status || 500).json({
     success: false,
@@ -84,23 +68,27 @@ app.use((err, req, res, next) => {
 
 // MQTT logic:
 aedes.authenticate = (client, username, password, callback) => {
+  if (!password || !username) {
+    const error = new Error('No credentials provided');
+    error.returnCode = 4;
+    return callback(error, null);
+  }
+
   client.isDevice = username === '1';
 
   if (client.isDevice) {
-    return callback(null, true);
+    if (config.devices.find(device => device.id === client.id && device.password === password.toString())) {
+      return callback(null, true);
+    }
   } else {
-    console.log('auth:', client.id, password.toString());
-
     if (auth.authenticate(password.toString())) {
       return callback(null, true);
     }
-
-    const error = new Error('Auth error');
-
-    error.returnCode = 4;
-
-    return callback(error, null);
   }
+
+  const error = new Error('Auth error');
+  error.returnCode = 4;
+  return callback(error, null);
 };
 
 aedes.on('publish', (packet, client) => {
@@ -110,25 +98,19 @@ aedes.on('publish', (packet, client) => {
 });
 
 aedes.on('client', (client) => {
-  if (client.isDevice) {
-    aedes.publish({
-      topic: `devices/${client.id}/set`,
-      payload: JSON.stringify({}),
-    });
-  }
+  console.log(`${client.id} connected`);
+});
+
+aedes.on('clientDisconnect', (client) => {
+  console.log(`${client.id} disconnected`);
 });
 
 const mqttServer = require('net').createServer(aedes.handle);
 
 // Start servers
-mqttServer.listen(MQTTPort, () => console.log('MQTT server listening on port', MQTTPort));
+mqttServer.listen(config.ports.MQTT, () => console.log(`MQTT server listening on port ${config.ports.MQTT}`));
 
-app.listen(HTTPPort, () => console.log(`HTTP listening on port 8080!`));
+ws.createServer({ server: httpServer }, aedes.handle);
+httpServer.listen(config.ports.MQTT_WS, () => console.log(`Websocket MQTT server listening on port ${config.ports.MQTT_WS}`));
 
-ws.createServer({
-  server: httpServer,
-}, aedes.handle);
-
-httpServer.listen(WSPort, function() {
-  console.log('websocket server listening on port', WSPort);
-});
+app.listen(config.ports.HTTP, () => console.log(`HTTP server listening on port ${config.ports.HTTP}`));

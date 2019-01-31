@@ -1,64 +1,68 @@
-const config = require('./config');
 const crypto = require('crypto');
 const express = require('express');
+const config = require('../config');
+
 const router = express.Router();
 
 class Auth {
   constructor(core) {
-    this.core = core;
+    /**
+     * {string} userId => {string[]} tokens
+     * @type {Object}
+     */
     this.tokens = {};
 
+    // Middleware
     this.authenticated = (req, res, next) => {
       const token = Auth.extractRequestToken(req);
 
-      if (Object.values(this.tokens).indexOf(token) !== -1) {
+      if (this.authenticate(token)) {
         return next();
       }
 
       const err = new Error('Not authorized');
       err.status = 400;
-      next(err);
+      return next(err);
     };
 
     router.post('/login', (req, res, next) => {
-      const { username, password } = req.body;
+      const { username = '', password } = req.body;
 
       const user = config.users.find(user => user.id.toLowerCase() === username.toLowerCase() && user.password === password);
 
       if (user) {
-        return this.generateToken(user.id)
-          .then(() => res.send({
+        this.generateToken(user.id)
+          .then(token => res.send({
+            ok: true,
             user: {
               id: user.id,
               name: user.name,
-              token: this.tokens[user.id],
+              token: token,
             },
-          }))
-          .catch(e => next(e));
+          }));
+
+        return;
       }
 
-      return res.send({
-        user: false,
-      });
+      const err = new Error('Wrong credentials');
+      err.status = 401;
+      return next(err);
     });
 
     router.post('/logout', (req, res, next) => {
       const token = Auth.extractRequestToken(req);
       const user = this.authenticate(token);
 
-      console.log(token, user);
-
       if (user) {
-        delete this.tokens[user.id];
 
         return res.send({
-          success: true,
+          ok: true,
         });
       }
 
-      return res.send({
-        success: false,
-      });
+      const err = new Error('Token was not found');
+      err.status = 401;
+      return next(err);
     });
 
     core.express.use('/api/auth', router);
@@ -82,28 +86,38 @@ class Auth {
 
   generateToken(userId) {
     return new Promise((resolve, reject) => {
-      crypto.randomBytes(48, (err, buffer) => {
+      crypto.randomBytes(config.auth.tokenSize, (err, buffer) => {
         if (err) return reject(err);
 
-        this.tokens[userId] = buffer.toString('base64');
+        const token = buffer.toString('base64');
 
-        return resolve(this.tokens[userId]);
+        if (this.tokens.hasOwnProperty(userId)) {
+          if (this.tokens[userId].length >= config.auth.maxTokens) {
+            this.tokens[userId].shift();
+          }
+
+          this.tokens[userId].push(token);
+        } else {
+          this.tokens[userId] = [token];
+        }
+
+        return resolve(token);
       });
     });
   }
 
-  authenticate(token) {
-    const index = Object.values(this.tokens).indexOf(token);
+  authenticate(token, givenUserId = false) {
+    for (const [userId, tokens] of Object.entries(this.tokens)) {
+      if (givenUserId && givenUserId !== userId) {
+        continue;
+      }
 
-    if (index === -1) {
-      return false;
+      if (tokens.indexOf(token) !== -1) {
+        return config.users.find(user => user.id === userId);
+      }
     }
 
-    const userId = Object.keys(this.tokens)[index];
-
-    return config.users.find(user => {
-      return user.id === userId;
-    });
+    return false;
   }
 }
 

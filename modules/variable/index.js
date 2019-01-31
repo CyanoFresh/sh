@@ -25,17 +25,19 @@ class Variable {
       }
     });
 
-    core.express.get(`/api/${this.id}/:itemId/chart`, (req, res, next) => {
+    core.apiRouter.get(`/${this.id}/:itemId/chart`, (req, res, next) => {
       const item = this.config.items.find(item => {
         return item.id === req.params.itemId;
       });
 
       if (!item) {
-        res.status(404);
-        return next(new Error('Item was not found'));
+        const err = new Error('Item was not found');
+        err.status = 404;
+        return next(err);
       }
 
       return res.json({
+        ok: true,
         item: item,
         data: [
           {
