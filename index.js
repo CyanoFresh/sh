@@ -2,6 +2,7 @@ const ws = require('websocket-stream');
 const express = require('express');
 const cors = require('cors');
 const config = require('./config');
+const items = require('./utils/items');
 
 const httpServer = require('http').createServer();
 const aedes = require('aedes')();
@@ -20,11 +21,11 @@ app.use(express.json());
 const auth = require('./utils/auth')(core);
 
 // HTTP
-const apiRouter = express.Router();
+core.apiRouter = express.Router();
 
-apiRouter.use(auth.authenticated);
+core.apiRouter.use(auth.authenticated);
 
-apiRouter.get(
+core.apiRouter.get(
   '/state',
   (req, res) => {
     const sendState = {
@@ -51,24 +52,22 @@ apiRouter.get(
   },
 );
 
-core.apiRouter = apiRouter;
-
 require('./utils/modules')(core);
 
-app.use('/api', apiRouter);
+app.use('/api', core.apiRouter);
 
 // Error handler
-app.use((err, req, res, next) => {
-  return res.status(err.status || 500).json({
-    success: false,
-    message: err.message,
-    ...err,
-  });
-});
+app.use((err, req, res, next) => res.status(err.status || 500).send({
+  ok: false,
+  message: err.message,
+  ...err,
+}));
 
 // MQTT logic:
 aedes.authenticate = (client, username, password, callback) => {
   if (!password || !username) {
+    console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
+
     const error = new Error('No credentials provided');
     error.returnCode = 4;
     return callback(error, null);
@@ -76,15 +75,19 @@ aedes.authenticate = (client, username, password, callback) => {
 
   client.isDevice = username === '1';
 
+  const passwordStr = password.toString();
+
   if (client.isDevice) {
-    if (config.devices.find(device => device.id === client.id && device.password === password.toString())) {
+    if (config.devices.find(device => device.id === client.id && device.password === passwordStr)) {
       return callback(null, true);
     }
   } else {
-    if (auth.authenticate(password.toString())) {
+    if (auth.authenticate(passwordStr)) {
       return callback(null, true);
     }
   }
+
+  console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
 
   const error = new Error('Auth error');
   error.returnCode = 4;
@@ -97,8 +100,23 @@ aedes.on('publish', (packet, client) => {
   }
 });
 
-aedes.on('client', (client) => {
+aedes.on('client', client => {
   console.log(`${client.id} connected`);
+
+  if (client.isDevice) {
+    // Send device initial state (hub is the source of truth)
+    const deviceItems = items.getDeviceItems(client.id);
+    const deviceConfig = {};
+
+    deviceItems.forEach(item => {
+      deviceConfig[item.id] = core.modules[item.module].getState(item.id);
+    });
+
+    aedes.publish({
+      topic: `devices/${client.id}/config`,
+      payload: JSON.stringify(deviceConfig),
+    }, () => console.log('Sent device config', deviceConfig));
+  }
 });
 
 aedes.on('clientDisconnect', (client) => {

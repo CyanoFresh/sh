@@ -54,6 +54,7 @@ class Auth {
       const user = this.authenticate(token);
 
       if (user) {
+        this.tokens[user.id] = this.tokens[user.id].filter(value => value !== token);
 
         return res.send({
           ok: true,

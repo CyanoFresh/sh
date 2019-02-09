@@ -3,11 +3,13 @@ class Variable {
     this.id = 'variable';
     this.name = 'Variable';
     this.config = {
+      charHistoryCount: 60,
       defaultState: { value: 'N/A' },
       items,
       ...config,
     };
     this.states = {};
+    this.chartData = {};
 
     this.loadDefaultStates();
 
@@ -36,65 +38,37 @@ class Variable {
         return next(err);
       }
 
+      const data = this.chartData[req.params.itemId] || [];
+
       return res.json({
         ok: true,
-        item: item,
-        data: [
-          {
-            time: '16:00',
-            value: 24,
-          },
-          {
-            time: '16:01',
-            value: 25,
-          },
-          {
-            time: '16:02',
-            value: 24,
-          },
-          {
-            time: '16:03',
-            value: 23,
-          },
-          {
-            time: '16:04',
-            value: 25,
-          },
-          {
-            time: '16:05',
-            value: 28,
-          },
-          {
-            time: '16:06',
-            value: 27,
-          },
-          {
-            time: '16:07',
-            value: 26,
-          },
-          {
-            time: '16:08',
-            value: 25,
-          },
-          {
-            time: '16:09',
-            value: 23,
-          },
-          {
-            time: '16:10',
-            value: 28,
-          },
-        ],
+        item,
+        data,
       });
     });
   }
 
   onUpdate(itemId, data) {
     this.updateState(itemId, data);
+
+    if (!this.chartData[itemId]) {
+      this.chartData[itemId] = [];
+    } else if (this.chartData[itemId].length >= this.config.charHistoryCount) {
+      this.chartData[itemId].shift();
+    }
+
+    const date = new Date();
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+
+    this.chartData[itemId].push({
+      time: `${hours}:${minutes}`,
+      value: data,
+    });
   }
 
   updateState(itemId, newState) {
-    this.states[itemId] = { value: newState.value };
+    this.states[itemId] = { value: newState };
   }
 
   loadDefaultStates() {

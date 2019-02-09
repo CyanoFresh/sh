@@ -7,4 +7,8 @@ module.exports = [
     id: 'room1-rgb2',
     password: 'fdlknjdfgljhnvfdjldshljkfsdkbjljbdssfdwfe',
   },
+  {
+    id: 'balcony-meteo',
+    password: 'gfbnjdfgshbnmsdgbnhjmksgdfsdfgdhfdhgf',
+  },
 ];

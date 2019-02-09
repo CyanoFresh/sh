@@ -30,9 +30,27 @@ module.exports = [
     name: 'Balcony',
     items: [
       [
-        { id: 'balcony-air_temperature', module: 'variable', name: 'Air Temperature', suffix: ' °C' },
-        { id: 'balcony-air_humidity', module: 'variable', name: 'Air Humidity', suffix: '%' },
-        { id: 'balcony-air_pressure', module: 'variable', name: 'Air Pressure', suffix: ' hPa' },
+        {
+          id: 'balcony-air_temperature',
+          module: 'variable',
+          device: 'balcony-meteo',
+          name: 'Air Temperature',
+          suffix: ' °C',
+        },
+        {
+          id: 'balcony-air_humidity',
+          device: 'balcony-meteo',
+          module: 'variable',
+          name: 'Air Humidity',
+          suffix: '%',
+        },
+        {
+          id: 'balcony-air_pressure',
+          device: 'balcony-meteo',
+          module: 'variable',
+          name: 'Air Pressure',
+          suffix: ' hPa',
+        },
       ],
     ],
   },
