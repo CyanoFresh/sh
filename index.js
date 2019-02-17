@@ -1,6 +1,9 @@
 const ws = require('websocket-stream');
 const express = require('express');
 const cors = require('cors');
+
+require('dotenv').config();
+
 const config = require('./config');
 const items = require('./utils/items');
 
@@ -25,32 +28,32 @@ core.apiRouter = express.Router();
 
 core.apiRouter.use(auth.authenticated);
 
-core.apiRouter.get(
-  '/state',
-  (req, res) => {
-    const sendState = {
-      ok: true,
-      dashboard: config.dashboard,
-      modules: config.modules,
-    };
+core.apiRouter.get('/state', (req, res) => {
+  const response = {
+    ok: true,
+    dashboard: config.dashboard,
+    modules: config.modules,
+  };
 
-    // Merge items config with state
-    sendState.dashboard.forEach((room, roomIndex) => {
-      room.items.forEach((itemGroup, itemGroupIndex) => {
-        itemGroup.forEach((item, itemIndex) => {
-          const module = core.modules[item.module];
+  // Fill items with current state
+  response.dashboard.forEach((room, roomIndex) => {
+    room.items.forEach((itemGroup, itemGroupIndex) => {
+      itemGroup.forEach((item, itemIndex) => {
+        const module = core.modules[item.module];
 
-          sendState.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
-            ...item,
-            ...module.getState(item.id),
-          };
-        });
+        response.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
+          ...item,
+          ...module.getState(item.id),
+        };
       });
     });
+  });
 
-    return res.send(sendState);
-  },
-);
+  // Remove only backend modules
+  response.modules = response.modules.filter(moduleConfig => moduleConfig.frontend);
+
+  return res.send(response);
+});
 
 require('./utils/modules')(core);
 
@@ -89,7 +92,7 @@ aedes.authenticate = (client, username, password, callback) => {
 
   console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
 
-  const error = new Error('Auth error');
+  const error = new Error('Wrong credentials');
   error.returnCode = 4;
   return callback(error, null);
 };
@@ -119,9 +122,7 @@ aedes.on('client', client => {
   }
 });
 
-aedes.on('clientDisconnect', (client) => {
-  console.log(`${client.id} disconnected`);
-});
+aedes.on('clientDisconnect', client => console.log(`${client.id} disconnected`));
 
 const mqttServer = require('net').createServer(aedes.handle);
 

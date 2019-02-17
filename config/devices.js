@@ -11,4 +11,8 @@ module.exports = [
     id: 'balcony-meteo',
     password: 'gfbnjdfgshbnmsdgbnhjmksgdfsdfgdhfdhgf',
   },
+  {
+    id: 'corridor-buzzer',
+    password: 'bnmdfgu534mbv7yadsu2hj34687tsd',
+  },
 ];

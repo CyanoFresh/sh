@@ -4,9 +4,9 @@ module.exports = {
   devices: require('./devices'),
   dashboard: require('./dashboard'),
   ports: {
-    MQTT: 1883,
-    MQTT_WS: 8888,
-    HTTP: 80,
+    MQTT: process.env.MQTT_PORT || 1883,
+    MQTT_WS: process.env.MQTT_WS_PORT || 8888,
+    HTTP: process.env.HTTP_PORT || 80,
   },
   auth: {
     maxTokens: 5,

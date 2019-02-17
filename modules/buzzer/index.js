@@ -1,7 +1,7 @@
-class Intercom {
+class Buzzer {
   constructor(config, items, core) {
     this.id = 'intercom';
-    this.name = 'Intercom';
+    this.name = 'Buzzer';
     this.config = {
       defaultState: { unlock: false },
       items,
@@ -55,4 +55,4 @@ class Intercom {
   }
 }
 
-module.exports = (config, items, core) => new Intercom(config, items, core);
+module.exports = (config, items, core) => new Buzzer(config, items, core);
