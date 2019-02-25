@@ -1,13 +1,14 @@
 class Buzzer {
   constructor(config, items, core) {
-    this.id = 'intercom';
+    this.id = 'buzzer';
     this.name = 'Buzzer';
     this.config = {
-      defaultState: { unlock: false },
+      defaultState: { isRinging: false },
       items,
       ...config,
     };
     this.states = {};
+    this.history = {};
 
     this.loadDefaultStates();
 
@@ -20,38 +21,59 @@ class Buzzer {
 
           if (action) {
             this.onAction(action, itemId, data);
-          } else {
-            this.onUpdate(itemId, data);
           }
         } catch (e) {
           return console.error(e);
         }
       }
     });
+
+    core.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
+      const item = this.config.items.find(item => item.id === req.params.itemId);
+
+      if (!item) {
+        const err = new Error('Item was not found');
+        err.status = 404;
+        return next(err);
+      }
+
+      return res.json({
+        ok: true,
+        history: this.history[item.id] || [],
+      });
+    });
   }
 
   onAction(type, itemId, data) {
-    if (type === 'unlock') {
-      this.updateState(itemId, data);
+    if (type === 'ringing') {
+      this.states[itemId].isRinging = data;
+
+      if (data === true) {
+        this.addHistory(itemId, 'ringing');
+      }
+    } else if (type === 'unlocked') {
+      this.addHistory(itemId, 'unlocked');
     }
   }
 
-  onUpdate(itemId, data) {
-    this.updateState(itemId, data);
-  }
-
-  updateState(itemId, newValue) {
-    this.states[itemId] = { value: newValue };
-  }
-
   loadDefaultStates() {
-    this.config.items.forEach((item) => {
+    this.config.items.forEach(item => {
       this.states[item.id] = this.config.defaultState;
+      this.history[item.id] = [];
     });
   }
 
   getState(itemId) {
     return this.states[itemId];
+  }
+
+  addHistory(itemId, type) {
+    const date = new Date();
+
+    this.history[itemId].push({
+      date,
+      type,
+    });
   }
 }
 

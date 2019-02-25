@@ -60,6 +60,11 @@ require('./utils/modules')(core);
 app.use('/api', core.apiRouter);
 
 // Error handler
+app.all('*', () => {
+  const error = new Error('Not found');
+  error.status = 404;
+  throw error;
+});
 app.use((err, req, res, next) => res.status(err.status || 500).send({
   ok: false,
   message: err.message,
@@ -76,7 +81,7 @@ aedes.authenticate = (client, username, password, callback) => {
     return callback(error, null);
   }
 
-  client.isDevice = username === '1';
+  client.isDevice = username === '1' || username === 'device';
 
   const passwordStr = password.toString();
 
