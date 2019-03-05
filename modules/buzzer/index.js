@@ -5,6 +5,7 @@ class Buzzer {
     this.config = {
       defaultState: { isRinging: false },
       items,
+      maxHistorySize: 10,
       ...config,
     };
     this.states = {};
@@ -52,6 +53,8 @@ class Buzzer {
         this.addHistory(itemId, 'ringing');
       }
     } else if (type === 'unlocked') {
+      this.states[itemId].isRinging = false;
+
       this.addHistory(itemId, 'unlocked');
     }
   }
@@ -70,10 +73,12 @@ class Buzzer {
   addHistory(itemId, type) {
     const date = new Date();
 
-    this.history[itemId].push({
+    this.history[itemId].unshift({
       date,
       type,
     });
+
+    this.history[itemId] = this.history[itemId].slice(0, this.config.maxHistorySize);
   }
 }
 

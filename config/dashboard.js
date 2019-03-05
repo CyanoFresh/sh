@@ -20,10 +20,10 @@ module.exports = [
     name: 'Corridor',
     items: [
       [
-        { id: 'corridor-light_switch', module: 'switch', name: 'Light' },
+        { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
       ],
       [
-        { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
+        { id: 'corridor-light_switch', module: 'switch', name: 'Light' },
       ],
     ],
   },

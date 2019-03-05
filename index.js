@@ -120,10 +120,12 @@ aedes.on('client', client => {
       deviceConfig[item.id] = core.modules[item.module].getState(item.id);
     });
 
-    aedes.publish({
-      topic: `devices/${client.id}/config`,
-      payload: JSON.stringify(deviceConfig),
-    }, () => console.log('Sent device config', deviceConfig));
+    if (Object.keys(deviceConfig).length !== 0) {
+      aedes.publish({
+        topic: `devices/${client.id}/config`,
+        payload: JSON.stringify(deviceConfig),
+      }, () => console.log('Sent device config', deviceConfig));
+    }
   }
 });
 
