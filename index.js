@@ -59,7 +59,7 @@ core.apiRouter.get('/state', (req, res) => {
 
 require('./utils/modules')(core);
 
-app.use('/', core.apiRouter);
+app.use('', core.apiRouter);
 
 // Error handler
 app.all('*', () => {
