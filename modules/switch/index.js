@@ -3,9 +3,7 @@ class Switch {
     this.id = 'switch';
     this.name = 'Switch';
     this.config = {
-      defaultState: {
-        state: false,
-      },
+      defaultState: false,
       items,
       ...config,
     };
@@ -43,9 +41,7 @@ class Switch {
   }
 
   updateState(itemId, newState) {
-    this.states[itemId] = {
-      state: newState.state,
-    };
+    this.states[itemId] = newState;
   }
 
   loadDefaultStates() {
@@ -55,7 +51,7 @@ class Switch {
   }
 
   getState(itemId) {
-    return this.states[itemId];
+    return { state: this.states[itemId] };
   }
 }
 

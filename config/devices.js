@@ -8,6 +8,10 @@ module.exports = [
     password: 'fdlknjdfgljhnvfdjldshljkfsdkbjljbdssfdwfe',
   },
   {
+    id: 'room1-light',
+    password: 'sdfnkjhdhjkvcfhjkvsdhjk324bkwerfsdw23r2345',
+  },
+  {
     id: 'balcony-meteo',
     password: 'gfbnjdfgshbnmsdgbnhjmksgdfsdfgdhfdhgf',
   },
