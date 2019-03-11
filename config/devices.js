@@ -19,6 +19,7 @@ module.exports = [
     id: 'corridor-buzzer',
     password: 'bnmdfgu534mbv7yadsu2hj34687tsd',
   },
+  // TODO:
   {
     id: 'corridor-wall',
     password: '4d18db80e353e526ad6d42a62aaa29be',
@@ -26,5 +27,9 @@ module.exports = [
   {
     id: 'bedroom-plant',
     password: 'a8f5f167f44f4964e6c998dee827110c',
+  },
+  {
+    id: 'bedroom-sill',
+    password: '33e78d60bc1f9dcc7291c891e6f069e6',
   },
 ];
