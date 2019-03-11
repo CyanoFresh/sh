@@ -19,4 +19,12 @@ module.exports = [
     id: 'corridor-buzzer',
     password: 'bnmdfgu534mbv7yadsu2hj34687tsd',
   },
+  {
+    id: 'corridor-wall',
+    password: '4d18db80e353e526ad6d42a62aaa29be',
+  },
+  {
+    id: 'bedroom-plant',
+    password: 'a8f5f167f44f4964e6c998dee827110c',
+  },
 ];
