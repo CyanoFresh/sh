@@ -3,7 +3,7 @@ class Variable {
     this.id = 'variable';
     this.name = 'Variable';
     this.config = {
-      charHistoryCount: 60,
+      charHistoryCount: 20,
       defaultState: { value: 'N/A' },
       items,
       ...config,
