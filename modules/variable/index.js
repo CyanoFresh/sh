@@ -82,10 +82,12 @@ class Variable {
       return;
     }
 
+    const item = this.config.items.find(item => item.id === itemId);
+
     let historyCount = this.config.historyCount;
 
-    if (this.config.items[itemId].hasOwnProperty('historyCount')) {
-      historyCount = this.config.items[itemId].historyCount;
+    if (item && item.hasOwnProperty('historyCount')) {
+      historyCount = item.historyCount;
     }
 
     if (this.history[itemId].length >= historyCount) {
