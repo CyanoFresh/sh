@@ -16,10 +16,8 @@ class Switch {
 
       if (module === this.id) {
         try {
-          const data = JSON.parse(payload.toString());
-
           if (!action) {
-            this.onUpdate(itemId, data);
+            this.onUpdate(itemId, JSON.parse(payload.toString()));
           }
         } catch (e) {
           return console.error(e);
