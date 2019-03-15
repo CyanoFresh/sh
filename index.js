@@ -113,22 +113,22 @@ aedes.on('publish', (packet, client) => {
 aedes.on('client', client => {
   console.log(`${client.id} connected`);
 
-  if (client.isDevice) {
-    // Send device initial state (hub is the source of truth)
-    const deviceItems = items.getDeviceItems(client.id);
-    const deviceConfig = {};
-
-    deviceItems.forEach(item => {
-      deviceConfig[item.id] = core.modules[item.module].getState(item.id);
-    });
-
-    if (Object.keys(deviceConfig).length !== 0) {
-      aedes.publish({
-        topic: `devices/${client.id}/config`,
-        payload: JSON.stringify(deviceConfig),
-      }, () => console.log('Sent device config', deviceConfig));
-    }
-  }
+  // if (client.isDevice) {
+  //   // Send device initial state (hub is the source of truth)
+  //   const deviceItems = items.getDeviceItems(client.id);
+  //   const deviceConfig = {};
+  //
+  //   deviceItems.forEach(item => {
+  //     deviceConfig[item.id] = core.modules[item.module].getState(item.id);
+  //   });
+  //
+  //   if (Object.keys(deviceConfig).length !== 0) {
+  //     aedes.publish({
+  //       topic: `devices/${client.id}/config`,
+  //       payload: JSON.stringify(deviceConfig),
+  //     }, () => console.log('Sent device config', deviceConfig));
+  //   }
+  // }
 });
 
 aedes.on('clientDisconnect', client => console.log(`${client.id} disconnected`));

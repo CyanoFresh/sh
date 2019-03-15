@@ -18,9 +18,7 @@ class Switch {
         try {
           const data = JSON.parse(payload.toString());
 
-          if (action) {
-            this.onAction(action, itemId, data);
-          } else {
+          if (!action) {
             this.onUpdate(itemId, data);
           }
         } catch (e) {
@@ -28,12 +26,6 @@ class Switch {
         }
       }
     });
-  }
-
-  onAction(type, itemId, data) {
-    if (type === 'set') {
-      this.updateState(itemId, data);
-    }
   }
 
   onUpdate(itemId, data) {
