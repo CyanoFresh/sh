@@ -3,13 +3,13 @@ class Variable {
     this.id = 'variable';
     this.name = 'Variable';
     this.config = {
-      charHistoryCount: 20,
+      historyCount: 20,
       defaultState: { value: 'N/A' },
       items,
       ...config,
     };
     this.states = {};
-    this.chartData = {};
+    this.history = {};
 
     this.loadDefaultStates();
 
@@ -27,7 +27,7 @@ class Variable {
       }
     });
 
-    core.apiRouter.get(`/${this.id}/:itemId/chart`, (req, res, next) => {
+    core.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
       const item = this.config.items.find(item => {
         return item.id === req.params.itemId;
       });
@@ -38,12 +38,12 @@ class Variable {
         return next(err);
       }
 
-      const data = this.chartData[req.params.itemId] || [];
+      const history = this.history[item.id] || [];
 
       return res.json({
         ok: true,
         item,
-        data,
+        history,
       });
     });
   }
@@ -51,18 +51,12 @@ class Variable {
   onUpdate(itemId, data) {
     this.updateState(itemId, data);
 
-    if (!this.chartData[itemId]) {
-      this.chartData[itemId] = [];
-    } else if (this.chartData[itemId].length >= this.config.charHistoryCount) {
-      this.chartData[itemId].shift();
-    }
+    this._checkHistoryCount(itemId);
 
     const date = new Date();
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
 
-    this.chartData[itemId].push({
-      time: `${hours}:${minutes}`,
+    this.history[itemId].push({
+      date,
       value: data,
     });
   }
@@ -74,11 +68,29 @@ class Variable {
   loadDefaultStates() {
     this.config.items.forEach(item => {
       this.states[item.id] = this.config.defaultState;
+      this.history[item.id] = [];
     });
   }
 
   getState(itemId) {
     return this.states[itemId];
+  }
+
+  _checkHistoryCount(itemId) {
+    if (!this.history[itemId]) {
+      this.history[itemId] = [];
+      return;
+    }
+
+    let historyCount = this.config.historyCount;
+
+    if (this.config.items[itemId].hasOwnProperty('historyCount')) {
+      historyCount = this.config.items[itemId].historyCount;
+    }
+
+    if (this.history[itemId].length >= historyCount) {
+      this.history[itemId].shift();
+    }
   }
 }
 

@@ -66,7 +66,7 @@ class Auth {
       return next(err);
     });
 
-    core.express.use('/auth', router);
+    core.express.use('/api/auth', router);
   }
 
   static extractRequestToken(req) {

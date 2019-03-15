@@ -4,8 +4,20 @@ module.exports = [
     name: 'Room One',
     items: [
       [
-        { id: 'room1-air_temperature', module: 'variable', name: 'Air Temperature', suffix: ' °C' },
-        { id: 'room1-air_humidity', module: 'variable', name: 'Air Humidity', suffix: '%' },
+        {
+          id: 'room1-air_temperature',
+          module: 'variable',
+          device: 'room1-table',
+          name: 'Air Temperature',
+          suffix: ' °C',
+        },
+        {
+          id: 'room1-air_humidity',
+          module: 'variable',
+          device: 'room1-table',
+          name: 'Air Humidity',
+          suffix: '%',
+        },
       ],
       [
         { id: 'room1-light', module: 'switch', name: 'Light' },
@@ -52,6 +64,7 @@ module.exports = [
           module: 'variable',
           name: 'Air Pressure',
           suffix: ' hPa',
+          historyCount: 60,
         },
       ],
     ],

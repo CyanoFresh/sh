@@ -16,6 +16,10 @@ module.exports = [
     password: 'fbnkljhjskdvy89vy9c37c3n76y23rcn7y8cyui',
   },
   {
+    id: 'room1-table',
+    password: 'jhdfguhkgmnkvgfnkmvvmnktu34cmy77y3',
+  },
+  {
     id: 'balcony-meteo',
     password: 'gfbnjdfgshbnmsdgbnhjmksgdfsdfgdhfdhgf',
   },
@@ -31,9 +35,5 @@ module.exports = [
   {
     id: 'bedroom-plant',
     password: 'a8f5f167f44f4964e6c998dee827110c',
-  },
-  {
-    id: 'bedroom-sill',
-    password: '33e78d60bc1f9dcc7291c891e6f069e6',
   },
 ];
