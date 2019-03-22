@@ -19,4 +19,9 @@ module.exports = [
     local: true,
     frontend: true,
   },
+  {
+    id: 'plant',
+    local: true,
+    frontend: true,
+  },
 ];

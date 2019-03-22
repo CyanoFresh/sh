@@ -18,6 +18,12 @@ module.exports = [
           name: 'Air Humidity',
           suffix: '%',
         },
+        {
+          id: 'room1-plant',
+          module: 'plant',
+          device: 'room1-plant',
+          name: 'Plant',
+        },
       ],
       [
         { id: 'room1-light', module: 'switch', name: 'Light' },
