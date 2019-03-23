@@ -57,7 +57,10 @@ class Plant {
 
   loadDefaultStates() {
     this.config.items.forEach(item => {
-      this.states[item.id] = this.config.defaultState;
+      this.states[item.id] = {
+        ...this.config.defaultState,
+
+      };
       this.history[item.id] = [];
     });
   }
