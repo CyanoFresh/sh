@@ -25,8 +25,10 @@ class Plant {
           const data = JSON.parse(payload.toString());
 
           if (action) {
-            this.onAction(action, itemId, data);
+            return this.onAction(action, itemId, data);
           }
+
+          return this.onUpdate(itemId, data);
         } catch (e) {
           return console.error(e);
         }
@@ -52,6 +54,20 @@ class Plant {
   onAction(type, itemId, data) {
     if (type === 'watered') {
       this.addWateredHistory(itemId);
+    }
+  }
+
+  onUpdate(itemId, data) {
+    if (data.moisture) {
+      this.states[itemId].moisture = data.moisture;
+    }
+
+    if (data.minMoisture) {
+      this.states[itemId].minMoisture = data.minMoisture;
+    }
+
+    if (data.duration) {
+      this.states[itemId].duration = data.duration;
     }
   }
 
