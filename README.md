@@ -17,6 +17,7 @@ Solomaha Home
       "state": true
     }
     ```
+- `switch/{ID}/toggle` - toggle switch current state
 
 ### Variable
 
@@ -28,7 +29,7 @@ Solomaha Home
     }
     ```
     
-- `variable/{ID}/set` - update value ***[Experimental]***
+- `variable/{ID}/set` - update value ***[TODO]***
 
 ### RGB
 
@@ -50,16 +51,39 @@ Solomaha Home
     }
     ```
 
-### Intercom
+### Buzzer
+    
+- `buzzer/{ID}/unlock` - unlock command
+- `buzzer/{ID}/ringing` - ringing event (sent from device)
+    
+    ```json
+    true
+    ```
+    or:
+    ```json
+    false
+    ```
+    
+- `buzzer/{ID}/unlocked` - unlocked event (sent from device)
 
-- `intercom/{ID}` - current state
+### Plant
+
+- `plant/{ID}` - current state
     
     ```json
     {
-        "unlock": false,
-        "isRinging": true
+        "moisture": 80
     }
     ```
+    config update scenario:
+    ```json
+    {
+        "minMoisture": 80,
+        "duration": 2
+    }
+    ```
+    can be combined
     
-- `intercom/{ID}/unlock` - unlock command
+- `plant/{ID}/water` - water command
+- `plant/{ID}/watered` - watered event
 
