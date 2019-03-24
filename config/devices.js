@@ -20,6 +20,10 @@ module.exports = [
     password: 'jhdfguhkgmnkvgfnkmvvmnktu34cmy77y3',
   },
   {
+    id: 'room1-plant',
+    password: 'hjdfhukfunecagngnfefrvjkhmlumiyervgdf',
+  },
+  {
     id: 'balcony-meteo',
     password: 'gfbnjdfgshbnmsdgbnhjmksgdfsdfgdhfdhgf',
   },
@@ -31,9 +35,5 @@ module.exports = [
   {
     id: 'corridor-wall',
     password: '4d18db80e353e526ad6d42a62aaa29be',
-  },
-  {
-    id: 'bedroom-plant',
-    password: 'a8f5f167f44f4964e6c998dee827110c',
   },
 ];
