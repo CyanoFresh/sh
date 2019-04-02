@@ -2,6 +2,7 @@ class Buzzer {
   constructor(config, items, core) {
     this.id = 'buzzer';
     this.name = 'Buzzer';
+    this.core = core;
     this.config = {
       defaultState: { isRinging: false },
       items,
@@ -52,10 +53,15 @@ class Buzzer {
       if (data === true) {
         this.addHistory(itemId, 'ringing');
       }
+
+      this.core.emit('buzzer.ringing', itemId, data);
     } else if (type === 'unlocked') {
       this.states[itemId].isRinging = false;
 
       this.addHistory(itemId, 'unlocked');
+
+      this.core.emit('buzzer.unlocked', itemId);
+      this.core.emit('buzzer.ringing', itemId, false);
     }
   }
 

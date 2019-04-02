@@ -1,24 +1,30 @@
 const ws = require('websocket-stream');
 const express = require('express');
 const cors = require('cors');
+const EventEmitter = require('events');
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
 const config = require('./config');
-const items = require('./utils/items');
 
 const httpServer = require('http').createServer();
 const aedes = require('aedes')();
 const app = express();
 
-const core = {
-  modules: {},
-  aedes,
-  config,
-  express: app,
-};
+class Core extends EventEmitter {
+  constructor() {
+    super();
+
+    this.express = app;
+    this.modules = {};
+    this.aedes = aedes;
+    this.config = config;
+  }
+}
+
+const core = new Core();
 
 app.use(cors());
 app.use(express.json());
@@ -29,33 +35,6 @@ const auth = require('./utils/auth')(core);
 core.apiRouter = express.Router();
 
 core.apiRouter.use(auth.authenticated);
-
-core.apiRouter.get('/state', (req, res) => {
-  const response = {
-    ok: true,
-    dashboard: config.dashboard,
-    modules: config.modules,
-  };
-
-  // Fill items with current state
-  response.dashboard.forEach((room, roomIndex) => {
-    room.items.forEach((itemGroup, itemGroupIndex) => {
-      itemGroup.forEach((item, itemIndex) => {
-        const module = core.modules[item.module];
-
-        response.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
-          ...item,
-          ...module.getState(item.id),
-        };
-      });
-    });
-  });
-
-  // Remove only backend modules
-  response.modules = response.modules.filter(moduleConfig => moduleConfig.frontend);
-
-  return res.send(response);
-});
 
 require('./utils/modules')(core);
 
@@ -113,38 +92,84 @@ aedes.on('publish', (packet, client) => {
 aedes.on('client', client => {
   console.log(`${client.id} connected`);
 
-  let topic;
+  let connectedTopic;
 
   if (client.isDevice) {
-    topic = `devices/${client.id}/connected`;
+    connectedTopic = `devices/${client.id}/connected`;
+
+    core.emit('device.connected', client.id);
   } else {
     const [userId] = client.id.split('@');
 
-    topic = `users/${userId}/connected`;
+    connectedTopic = `users/${userId}/connected`;
+
+    core.emit('user.connected', userId);
   }
 
   aedes.publish({
-    topic,
+    topic: connectedTopic,
     payload: JSON.stringify(true),
   });
+});
+
+aedes.on('subscribe', (subscriptions, client) => {
+  if (!client || client.isDevice) {
+    return;
+  }
+
+  const userTopic = `user/${client.id}`;
+
+  if (subscriptions.find(subscription => subscription.topic === userTopic)) {
+    const sendData = {
+      dashboard: config.dashboard,
+      modules: config.modules,
+    };
+
+    // Populate items with current state
+    sendData.dashboard.forEach((room, roomIndex) => {
+      room.items.forEach((itemGroup, itemGroupIndex) => {
+        itemGroup.forEach((item, itemIndex) => {
+          const module = core.modules[item.module];
+
+          sendData.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
+            ...item,
+            ...module.getState(item.id),
+          };
+        });
+      });
+    });
+
+    // Send only frontend modules
+    sendData.modules = sendData.modules.filter(moduleConfig => moduleConfig.frontend);
+
+    client.publish({
+      topic: userTopic,
+      payload: JSON.stringify(sendData),
+    });
+  }
 });
 
 aedes.on('clientDisconnect', client => {
   console.log(`${client.id} disconnected`);
 
-  let topic;
+  let disconnectedTopic;
 
   if (client.isDevice) {
-    topic = `devices/${client.id}/connected`;
+    disconnectedTopic = `devices/${client.id}/connected`;
+
+    core.emit('device.disconnected', client.id);
   } else {
     const [userId] = client.id.split('@');
 
-    topic = `users/${userId}/connected`;
+    disconnectedTopic = `users/${userId}/connected`;
+
+    core.emit('user.disconnected', userId);
   }
 
   aedes.publish({
-    topic,
-    payload: JSON.stringify(true),
+    topic: disconnectedTopic,
+    payload: JSON.stringify(false),
+  }, () => {
   });
 });
 

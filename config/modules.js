@@ -24,4 +24,17 @@ module.exports = [
     local: true,
     frontend: true,
   },
+  {
+    id: 'telegram',
+    local: true,
+    frontend: false,
+    rules: [
+      {
+        trigger: {
+          event: 'buzzer.ringing',
+          params: ['corridor.buzzer'],
+        },
+      },
+    ],
+  },
 ];
