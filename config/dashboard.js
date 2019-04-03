@@ -29,19 +29,7 @@ module.exports = [
         { id: 'room1-light', module: 'switch', name: 'Light' },
         { id: 'room1-secondary_light', module: 'switch', name: 'Secondary Light' },
         { id: 'room1-rgb', module: 'rgb', name: 'Mood Light' },
-        { id: 'room1-rgb2', module: 'rgb', name: 'Mood Light 2' },
-      ],
-    ],
-  },
-  {
-    id: 'corridor',
-    name: 'Corridor',
-    items: [
-      [
-        { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
-      ],
-      [
-        { id: 'corridor-light_switch', module: 'switch', name: 'Light' },
+        // { id: 'room1-rgb2', module: 'rgb', name: 'Mood Light 2' },
       ],
     ],
   },
@@ -72,6 +60,18 @@ module.exports = [
           suffix: ' hPa',
           historyCount: 60,
         },
+      ],
+    ],
+  },
+  {
+    id: 'corridor',
+    name: 'Corridor',
+    items: [
+      [
+        { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
+      ],
+      [
+        { id: 'corridor-light_switch', module: 'switch', name: 'Light' },
       ],
     ],
   },
