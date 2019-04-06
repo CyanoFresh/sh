@@ -3,6 +3,8 @@ module.exports = {
   users: require('./users'),
   devices: require('./devices'),
   dashboard: require('./dashboard'),
+  dashboards: require('./dashboards'),
+  items: require('./items'),
   ports: {
     MQTT: process.env.MQTT_PORT || 1883,
     MQTT_WS: process.env.MQTT_WS_PORT || 8888,

@@ -71,7 +71,7 @@ module.exports = [
         { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
       ],
       [
-        { id: 'corridor-light_switch', module: 'switch', name: 'Light' },
+        { id: 'corridor-light', module: 'switch', name: 'Light' },
       ],
     ],
   },

@@ -31,9 +31,8 @@ module.exports = [
     id: 'corridor-buzzer',
     password: 'bnmdfgu534mbv7yadsu2hj34687tsd',
   },
-  // TODO:
   {
-    id: 'corridor-wall',
-    password: '4d18db80e353e526ad6d42a62aaa29be',
+    id: 'corridor-light',
+    password: 'fdsnkjhjksdfhgkdfsghsvdffgddgf432342grefd32e',
   },
 ];
