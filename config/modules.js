@@ -25,6 +25,11 @@ module.exports = [
     frontend: true,
   },
   {
+    id: 'motion-switch',
+    local: true,
+    frontend: true,
+  },
+  {
     id: 'telegram',
     local: true,
     frontend: false,
