@@ -21,12 +21,10 @@ Solomaha Home
 
 ### Variable
 
-- `variable/{ID}` - current value
+- `variable/{ID}` - current value:
 
-    ```json
-    {
-        "value": 26.6
-    }
+    ```
+    24.6
     ```
     
 - `variable/{ID}/set` - update value ***[TODO]***

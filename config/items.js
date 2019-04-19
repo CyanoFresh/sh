@@ -66,4 +66,9 @@ module.exports = [
     module: 'switch',
     name: 'Light',
   },
+  {
+    id: 'corridor-door',
+    module: 'variable',
+    name: 'Door',
+  },
 ];

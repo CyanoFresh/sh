@@ -33,12 +33,24 @@ module.exports = [
     id: 'telegram',
     local: true,
     frontend: false,
+    chatId: -123,
+    token: '307142828:AAHVfYBPlRnHIXjDGB5qVkjMaR2xPdUF7CQ',
     rules: [
-      {
-        trigger: {
-          event: 'buzzer.ringing',
-          params: ['corridor.buzzer'],
-        },
+      module => module.send('Server started'),
+      module => {
+        module.core.aedes.on('publish', ({ topic, payload }) => {
+          if (topic === 'variable/door') {
+            try {
+              const data = JSON.parse(payload.toString());
+
+              let msg = `Door was ${data}`;
+
+              module.send(msg);
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        });
       },
     ],
   },
