@@ -1,3 +1,8 @@
+const HISTORY_TYPES = {
+  WATERED: 'watered',
+  SETTINGS_CHANGED: 'settings',
+};
+
 class Plant {
   constructor(config, items, core) {
     this.id = 'plant';
@@ -9,7 +14,7 @@ class Plant {
         duration: 10,
       },
       items,
-      maxHistorySize: 5,
+      maxHistorySize: 7,
       ...config,
     };
     this.states = {};
@@ -53,7 +58,7 @@ class Plant {
 
   onAction(type, itemId, data) {
     if (type === 'watered') {
-      this.addWateredHistory(itemId);
+      this.addHistory(itemId, HISTORY_TYPES.WATERED);
     }
   }
 
@@ -62,12 +67,24 @@ class Plant {
       this.states[itemId].moisture = data.moisture;
     }
 
-    if (data.minMoisture) {
-      this.states[itemId].minMoisture = data.minMoisture;
-    }
+    if (data.minMoisture || data.duration) {
+      const data = {};
 
-    if (data.duration) {
-      this.states[itemId].duration = data.duration;
+      if (data.minMoisture) {
+        data.oldMoisture = this.states[itemId].minMoisture;
+        data.newMoisture = data.minMoisture;
+
+        this.states[itemId].minMoisture = data.minMoisture;
+      }
+
+      if (data.duration) {
+        data.oldDuration = this.states[itemId].duration;
+        data.newDuration = data.duration;
+
+        this.states[itemId].duration = data.duration;
+      }
+
+      this.addHistory(itemId, HISTORY_TYPES.SETTINGS_CHANGED);
     }
   }
 
@@ -85,10 +102,14 @@ class Plant {
     return this.states[itemId];
   }
 
-  addWateredHistory(itemId) {
+  addHistory(itemId, type, data = {}) {
     const date = new Date();
 
-    this.history[itemId].unshift(date);
+    this.history[itemId].unshift({
+      type,
+      date,
+      ...data,
+    });
 
     this.history[itemId] = this.history[itemId].slice(0, this.config.maxHistorySize);
   }
