@@ -68,23 +68,23 @@ class Plant {
     }
 
     if (data.minMoisture || data.duration) {
-      const data = {};
+      const historyData = {};
 
       if (data.minMoisture) {
-        data.oldMoisture = this.states[itemId].minMoisture;
-        data.newMoisture = data.minMoisture;
+        historyData.oldMoisture = this.states[itemId].minMoisture;
+        historyData.newMoisture = data.minMoisture;
 
         this.states[itemId].minMoisture = data.minMoisture;
       }
 
       if (data.duration) {
-        data.oldDuration = this.states[itemId].duration;
-        data.newDuration = data.duration;
+        historyData.oldDuration = this.states[itemId].duration;
+        historyData.newDuration = data.duration;
 
         this.states[itemId].duration = data.duration;
       }
 
-      this.addHistory(itemId, HISTORY_TYPES.SETTINGS_CHANGED, data);
+      this.addHistory(itemId, HISTORY_TYPES.SETTINGS_CHANGED, historyData);
     }
   }
 
@@ -102,7 +102,7 @@ class Plant {
     return this.states[itemId];
   }
 
-  addHistory(itemId, type, data = {}) {
+  addHistory(itemId, type, data) {
     const date = new Date();
 
     this.history[itemId].unshift({
