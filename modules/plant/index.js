@@ -84,7 +84,7 @@ class Plant {
         this.states[itemId].duration = data.duration;
       }
 
-      this.addHistory(itemId, HISTORY_TYPES.SETTINGS_CHANGED);
+      this.addHistory(itemId, HISTORY_TYPES.SETTINGS_CHANGED, data);
     }
   }
 
