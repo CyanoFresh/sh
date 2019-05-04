@@ -34,6 +34,19 @@ module.exports = [
     ],
   },
   {
+    id: 'corridor',
+    name: 'Corridor',
+    items: [
+      [
+        { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
+        { id: 'corridor-door', module: 'variable', name: 'Door' },
+      ],
+      [
+        { id: 'corridor-light', module: 'motion-switch', name: 'Light' },
+      ],
+    ],
+  },
+  {
     id: 'balcony',
     name: 'Balcony',
     items: [
@@ -60,19 +73,6 @@ module.exports = [
           suffix: ' hPa',
           historyCount: 60,
         },
-      ],
-    ],
-  },
-  {
-    id: 'corridor',
-    name: 'Corridor',
-    items: [
-      [
-        { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
-        { id: 'corridor-door', module: 'variable', name: 'Door' },
-      ],
-      [
-        { id: 'corridor-light', module: 'motion-switch', name: 'Light' },
       ],
     ],
   },
