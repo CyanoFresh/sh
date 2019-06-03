@@ -28,6 +28,7 @@ module.exports = [
       [
         { id: 'room1-light', module: 'switch', name: 'Light' },
         { id: 'room1-secondary_light', module: 'switch', name: 'Secondary Light' },
+        { id: 'room1-fan', module: 'switch', name: 'Fan' },
         { id: 'room1-rgb', module: 'rgb', name: 'LED Strip' },
         // { id: 'room1-rgb2', module: 'rgb', name: 'Mood Light 2' },
       ],

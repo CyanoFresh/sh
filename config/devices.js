@@ -16,6 +16,10 @@ module.exports = [
     password: 'fbnkljhjskdvy89vy9c37c3n76y23rcn7y8cyui',
   },
   {
+    id: 'room1-fan',
+    password: 'svcnr6u2tc3tnex23nbgdf7zm7eyd24v73gvcn63m273',
+  },
+  {
     id: 'room1-table',
     password: 'jhdfguhkgmnkvgfnkmvvmnktu34cmy77y3',
   },
