@@ -73,7 +73,10 @@ class Variable {
   }
 
   getState(itemId) {
-    return this.states[itemId];
+    return {
+      historyCount: this._getHistoryCount(itemId),
+      ...this.states[itemId],
+    };
   }
 
   _checkHistoryCount(itemId) {
@@ -82,6 +85,14 @@ class Variable {
       return;
     }
 
+    const historyCount = this._getHistoryCount(itemId);
+
+    if (this.history[itemId].length >= historyCount) {
+      this.history[itemId].shift();
+    }
+  }
+
+  _getHistoryCount(itemId) {
     const item = this.config.items.find(item => item.id === itemId);
 
     let historyCount = this.config.historyCount;
@@ -90,9 +101,7 @@ class Variable {
       historyCount = item.historyCount;
     }
 
-    if (this.history[itemId].length >= historyCount) {
-      this.history[itemId].shift();
-    }
+    return historyCount;
   }
 }
 
