@@ -101,7 +101,7 @@ module.exports = [
   },
   {
     id: 'kitchen',
-    name: 'Kitchen 2',
+    name: 'Kitchen',
     items: [
       [
         {
