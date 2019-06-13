@@ -1,3 +1,10 @@
+const HISTORY_RANGE = {
+  ONE_HOUR: 1,
+  THREE_HOURS: 3,
+  TWELVE_HOURS: 12,
+  DAY: 24,
+};
+
 class Variable {
   constructor(config, items, core) {
     this.id = 'variable';
@@ -38,7 +45,7 @@ class Variable {
         return next(err);
       }
 
-      const history = this.history[item.id] || [];
+      const history = this.history[item.id];
 
       return res.json({
         ok: true,

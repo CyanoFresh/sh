@@ -35,19 +35,6 @@ module.exports = [
     ],
   },
   {
-    id: 'corridor',
-    name: 'Corridor',
-    items: [
-      [
-        { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
-        { id: 'corridor-door', module: 'variable', name: 'Door' },
-      ],
-      [
-        { id: 'corridor-light', module: 'motion-switch', name: 'Light' },
-      ],
-    ],
-  },
-  {
     id: 'balcony',
     name: 'Balcony',
     items: [
@@ -73,6 +60,63 @@ module.exports = [
           name: 'Air Pressure',
           suffix: ' hPa',
           historyCount: 60,
+        },
+      ],
+    ],
+  },
+  {
+    id: 'corridor',
+    name: 'Corridor',
+    items: [
+      [
+        { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
+        { id: 'corridor-door', module: 'variable', name: 'Door' },
+      ],
+      [
+        { id: 'corridor-light', module: 'motion-switch', name: 'Light' },
+      ],
+    ],
+  },
+  {
+    id: 'room2',
+    name: 'Room 2',
+    items: [
+      [
+        {
+          id: 'room2-air_temperature',
+          module: 'variable',
+          device: 'room2-table',
+          name: 'Air Temperature',
+          suffix: ' °C',
+        },
+        {
+          id: 'room2-air_humidity',
+          module: 'variable',
+          device: 'room2-table',
+          name: 'Air Humidity',
+          suffix: '%',
+        },
+      ],
+    ],
+  },
+  {
+    id: 'kitchen',
+    name: 'Kitchen 2',
+    items: [
+      [
+        {
+          id: 'kitchen-air_temperature',
+          module: 'variable',
+          device: 'kitchen-table',
+          name: 'Air Temperature',
+          suffix: ' °C',
+        },
+        {
+          id: 'kitchen-air_humidity',
+          module: 'variable',
+          device: 'kitchen-table',
+          name: 'Air Humidity',
+          suffix: '%',
         },
       ],
     ],
