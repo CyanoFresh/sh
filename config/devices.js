@@ -24,6 +24,14 @@ module.exports = [
     password: 'jhdfguhkgmnkvgfnkmvvmnktu34cmy77y3',
   },
   {
+    id: 'room2-table',
+    password: 'dfgskhjsdfhjkgbfsdhbkghgjfksadhgjkfsladhgjb',
+  },
+  {
+    id: 'kitchen-table',
+    password: 'fsdknmjhdfeukit876n23nt86c231t86n7ixr32tb',
+  },
+  {
     id: 'room1-plant',
     password: 'hjdfhukfunecagngnfefrvjkhmlumiyervgdf',
   },
