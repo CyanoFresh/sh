@@ -57,12 +57,12 @@ class Variable {
   }
 
   onUpdate(itemId, data) {
+    const date = new Date();
+
     this.states[itemId].value = data;
-    this.states[itemId].lastUpdate = new Date();
+    this.states[itemId].lastUpdate = date;
 
     this._checkHistoryCount(itemId);
-
-    const date = new Date();
 
     this.history[itemId].push({
       date,
@@ -72,7 +72,7 @@ class Variable {
 
   loadDefaultStates() {
     this.config.items.forEach(item => {
-      this.states[item.id] = this.config.defaultState;
+      this.states[item.id] = { ...this.config.defaultState };
       this.history[item.id] = [];
     });
   }
