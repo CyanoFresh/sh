@@ -1,17 +1,16 @@
-const HISTORY_RANGE = {
-  ONE_HOUR: 1,
-  THREE_HOURS: 3,
-  TWELVE_HOURS: 12,
-  DAY: 24,
-};
-
 class Variable {
   constructor(config, items, core) {
     this.id = 'variable';
     this.name = 'Variable';
     this.config = {
-      historyCount: 20,
-      defaultState: { value: 'N/A' },
+      defaultState: {
+        value: 'N/A',
+        lastUpdate: null,
+      },
+      defaultConfig: {
+        color: 'default',
+        historyCount: 20,
+      },
       items,
       ...config,
     };
@@ -35,8 +34,10 @@ class Variable {
     });
 
     core.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
+      const { itemId } = req.params;
+
       const item = this.config.items.find(item => {
-        return item.id === req.params.itemId;
+        return item.id === itemId;
       });
 
       if (!item) {
@@ -56,7 +57,8 @@ class Variable {
   }
 
   onUpdate(itemId, data) {
-    this.updateState(itemId, data);
+    this.states[itemId].value = data;
+    this.states[itemId].lastUpdate = new Date();
 
     this._checkHistoryCount(itemId);
 
@@ -68,10 +70,6 @@ class Variable {
     });
   }
 
-  updateState(itemId, newState) {
-    this.states[itemId] = { value: newState };
-  }
-
   loadDefaultStates() {
     this.config.items.forEach(item => {
       this.states[item.id] = this.config.defaultState;
@@ -81,7 +79,6 @@ class Variable {
 
   getState(itemId) {
     return {
-      historyCount: this._getHistoryCount(itemId),
       ...this.states[itemId],
     };
   }
@@ -92,23 +89,11 @@ class Variable {
       return;
     }
 
-    const historyCount = this._getHistoryCount(itemId);
-
-    if (this.history[itemId].length >= historyCount) {
-      this.history[itemId].shift();
-    }
-  }
-
-  _getHistoryCount(itemId) {
     const item = this.config.items.find(item => item.id === itemId);
 
-    let historyCount = this.config.historyCount;
-
-    if (item && item.hasOwnProperty('historyCount')) {
-      historyCount = item.historyCount;
+    if (this.history[itemId].length >= item.historyCount) {
+      this.history[itemId].shift();
     }
-
-    return historyCount;
   }
 }
 

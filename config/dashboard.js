@@ -10,6 +10,7 @@ module.exports = [
           device: 'room1-table',
           name: 'Air Temperature',
           suffix: ' °C',
+          color: 'red',
         },
         {
           id: 'room1-air_humidity',
@@ -17,6 +18,7 @@ module.exports = [
           device: 'room1-table',
           name: 'Air Humidity',
           suffix: '%',
+          color: 'light_blue',
         },
         {
           id: 'room1-plant',
@@ -45,6 +47,7 @@ module.exports = [
           device: 'balcony-meteo',
           name: 'Air Temperature',
           suffix: ' °C',
+          color: 'red',
         },
         {
           id: 'balcony-air_humidity',
@@ -52,6 +55,7 @@ module.exports = [
           module: 'variable',
           name: 'Air Humidity',
           suffix: '%',
+          color: 'light_blue',
         },
         {
           id: 'balcony-air_pressure',
@@ -60,6 +64,7 @@ module.exports = [
           name: 'Air Pressure',
           suffix: ' hPa',
           historyCount: 60,
+          color: 'blue',
         },
       ],
     ],
@@ -70,7 +75,6 @@ module.exports = [
     items: [
       [
         { id: 'corridor-buzzer', module: 'buzzer', name: 'Intercom' },
-        { id: 'corridor-door', module: 'variable', name: 'Door' },
       ],
       [
         { id: 'corridor-light', module: 'motion-switch', name: 'Light' },
@@ -88,6 +92,7 @@ module.exports = [
           device: 'room2-table',
           name: 'Air Temperature',
           suffix: ' °C',
+          color: 'red',
         },
         {
           id: 'room2-air_humidity',
@@ -95,6 +100,7 @@ module.exports = [
           device: 'room2-table',
           name: 'Air Humidity',
           suffix: '%',
+          color: 'light_blue',
         },
       ],
     ],
@@ -110,6 +116,7 @@ module.exports = [
           device: 'kitchen-table',
           name: 'Air Temperature',
           suffix: ' °C',
+          color: 'red',
         },
         {
           id: 'kitchen-air_humidity',
@@ -117,6 +124,7 @@ module.exports = [
           device: 'kitchen-table',
           name: 'Air Humidity',
           suffix: '%',
+          color: 'light_blue',
         },
       ],
     ],

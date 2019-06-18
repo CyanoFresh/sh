@@ -132,6 +132,7 @@ aedes.on('subscribe', (subscriptions, client) => {
           const module = core.modules[item.module];
 
           sendData.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
+            ...module.config.defaultConfig,
             ...item,
             ...module.getState(item.id),
           };
