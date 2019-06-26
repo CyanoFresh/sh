@@ -17,7 +17,7 @@ class Variable {
     this.states = {};
     this.history = {};
 
-    this.loadDefaultStates();
+    this.initData();
 
     core.aedes.on('publish', ({ topic, payload }) => {
       const [module, itemId, action] = topic.split('/');
@@ -70,11 +70,26 @@ class Variable {
     });
   }
 
-  loadDefaultStates() {
-    this.config.items.forEach(item => {
+  initData() {
+    this.config.items.forEach((item, index) => {
       this.states[item.id] = { ...this.config.defaultState };
       this.history[item.id] = [];
+
+      // Merge with default configuration
+      this.config.items[index] = {
+        ...this.config.defaultConfig,
+        ...item,
+      };
     });
+  }
+
+  getItemData(itemId) {
+    const item = this.config.items.find(item => item.id === itemId);
+
+    return {
+      ...item,
+      ...this.getState(itemId),
+    };
   }
 
   getState(itemId) {

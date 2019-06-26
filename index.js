@@ -131,11 +131,7 @@ aedes.on('subscribe', (subscriptions, client) => {
         itemGroup.forEach((item, itemIndex) => {
           const module = core.modules[item.module];
 
-          sendData.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = {
-            ...module.config.defaultConfig,
-            ...item,
-            ...module.getState(item.id),
-          };
+          sendData.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = module.getItemData(item.id);
         });
       });
     });

@@ -12,7 +12,7 @@ class MotionSwitch {
     };
     this.states = {};
 
-    this.loadDefaultStates();
+    this.initData();
 
     core.aedes.on('publish', ({ topic, payload }) => {
       const [module, itemId, ...rest] = topic.split('/');
@@ -37,14 +37,19 @@ class MotionSwitch {
     });
   }
 
-  loadDefaultStates() {
+  initData() {
     this.config.items.forEach((item) => {
       this.states[item.id] = this.config.defaultState;
     });
   }
 
-  getState(itemId) {
-    return this.states[itemId];
+  getItemData(itemId) {
+    const item = this.config.items.find(item => item.id === itemId);
+
+    return {
+      ...item,
+      ...this.states[itemId],
+    };
   }
 }
 

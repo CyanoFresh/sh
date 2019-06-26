@@ -12,7 +12,7 @@ class Buzzer {
     this.states = {};
     this.history = {};
 
-    this.loadDefaultStates();
+    this.initData();
 
     core.aedes.on('publish', ({ topic, payload }) => {
       const [module, itemId, action] = topic.split('/');
@@ -65,15 +65,20 @@ class Buzzer {
     }
   }
 
-  loadDefaultStates() {
+  initData() {
     this.config.items.forEach(item => {
       this.states[item.id] = this.config.defaultState;
       this.history[item.id] = [];
     });
   }
 
-  getState(itemId) {
-    return this.states[itemId];
+  getItemData(itemId) {
+    const item = this.config.items.find(item => item.id === itemId);
+
+    return {
+      ...item,
+      ...this.states[itemId],
+    };
   }
 
   addHistory(itemId, type) {

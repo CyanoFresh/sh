@@ -9,7 +9,7 @@ class Switch {
     };
     this.states = {};
 
-    this.loadDefaultStates();
+    this.initData();
 
     core.aedes.on('publish', ({ topic, payload }) => {
       const [module, itemId, action] = topic.split('/');
@@ -34,14 +34,19 @@ class Switch {
     this.states[itemId] = newState;
   }
 
-  loadDefaultStates() {
+  initData() {
     this.config.items.forEach((item) => {
       this.states[item.id] = this.config.defaultState;
     });
   }
 
-  getState(itemId) {
-    return { state: this.states[itemId] };
+  getItemData(itemId) {
+    const item = this.config.items.find(item => item.id === itemId);
+
+    return {
+      ...item,
+      state: this.states[itemId],
+    };
   }
 }
 
