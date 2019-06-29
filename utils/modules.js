@@ -1,4 +1,8 @@
-module.exports = (core) => {
+/**
+ * @param {Core} core
+ * @constructor
+ */
+function Modules(core) {
   function getModulesItems(moduleId) {
     let items = [];
 
@@ -12,20 +16,26 @@ module.exports = (core) => {
     return items;
   }
 
+  const modules = {};
+
   core.config.modules.forEach(config => {
     const items = getModulesItems(config.id);
 
     // Load module
     try {
       if (config.local) {
-        core.modules[config.id] = require(`../modules/${config.id}`)(config, items, core);
+        modules[config.id] = require(`../modules/${config.id}`)(config, items, core);
       } else {
-        core.modules[config.id] = require(config.id)(config, items, core);
+        modules[config.id] = require(config.id)(config, items, core);
       }
 
       console.log(`Module ${config.id} loaded`);
     } catch (e) {
-      console.log(`Module ${config.id} not loaded`, e);
+      console.log(`Module ${config.id} not loaded: `, e);
     }
   });
-};
+
+  return modules;
+}
+
+module.exports = Modules;

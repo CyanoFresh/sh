@@ -33,7 +33,7 @@ class Variable {
       }
     });
 
-    core.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
+    core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
       const { itemId } = req.params;
 
       const item = this.config.items.find(item => {

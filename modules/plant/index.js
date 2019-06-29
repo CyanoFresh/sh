@@ -40,7 +40,7 @@ class Plant {
       }
     });
 
-    core.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
+    core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
       const item = this.config.items.find(item => item.id === req.params.itemId);
 
       if (!item) {
