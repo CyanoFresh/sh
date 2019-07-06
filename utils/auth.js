@@ -1,18 +1,54 @@
 const crypto = require('crypto');
 const express = require('express');
-const config = require('../config');
-
-const router = express.Router();
+const Sequelize = require('sequelize');
 
 class Auth {
   constructor(core) {
+    this.core = core;
     /**
      * {string} userId => {string[]} tokens
      * @type {Object}
      */
     this.tokens = {};
 
-    // Middleware
+    this.loadDB();
+    this.loadWeb();
+  }
+
+  loadDB() {
+    this.UserTokenModel = this.core.sequelize.define('user_token', {
+      user_id: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+      },
+      token: {
+        type: Sequelize.STRING(),
+        allowNull: false,
+      },
+    }, {
+      timestamps: false,
+      indexes: [
+        {
+          fields: ['user_id', 'token'],
+        },
+      ],
+    });
+
+    // Load tokens form DB
+    this.UserTokenModel.findAll({}).then(userTokens => {
+      userTokens.forEach(userTokenModel => {
+        const { user_id, token } = userTokenModel;
+
+        if (!this.tokens.hasOwnProperty(user_id)) {
+          this.tokens[user_id] = [];
+        }
+
+        this.tokens[user_id].push(token);
+      });
+    });
+  }
+
+  loadWeb() {
     this.authenticated = (req, res, next) => {
       const token = Auth.extractRequestToken(req);
 
@@ -25,12 +61,15 @@ class Auth {
       return next(err);
     };
 
+    const router = express.Router();
+
     router.post('/login', (req, res, next) => {
       const { username = '', password } = req.body;
 
-      const user = config.users.find(user => user.id.toLowerCase() === username.toLowerCase() && user.password === password);
+      const user = this.core.config.users.find(user => user.id.toLowerCase() === username.toLowerCase() && user.password === password);
 
       if (user) {
+        // Generate, save and return token
         this.generateToken(user.id)
           .then(token => res.send({
             ok: true,
@@ -54,7 +93,16 @@ class Auth {
       const user = this.authenticate(token);
 
       if (user) {
+        // Remove from memory
         this.tokens[user.id] = this.tokens[user.id].filter(value => value !== token);
+
+        // Remove from DB
+        this.UserTokenModel.destroy({
+          where: {
+            user_id: user.id,
+            token,
+          },
+        });
 
         return res.send({
           ok: true,
@@ -66,7 +114,7 @@ class Auth {
       return next(err);
     });
 
-    core.express.use('/api/auth', router);
+    this.core.express.use('/api/auth', router);
   }
 
   static extractRequestToken(req) {
@@ -87,14 +135,21 @@ class Auth {
 
   generateToken(userId) {
     return new Promise((resolve, reject) => {
-      crypto.randomBytes(config.auth.tokenSize, (err, buffer) => {
+      crypto.randomBytes(this.core.config.auth.tokenSize, (err, buffer) => {
         if (err) return reject(err);
 
         const token = buffer.toString('base64');
 
         if (this.tokens.hasOwnProperty(userId)) {
-          if (this.tokens[userId].length >= config.auth.maxTokens) {
-            this.tokens[userId].shift();
+          if (this.tokens[userId].length >= this.core.config.auth.maxTokens) {
+            const token = this.tokens[userId].shift();
+
+            this.UserTokenModel.destroy({
+              where: {
+                user_id: userId,
+                token,
+              },
+            });
           }
 
           this.tokens[userId].push(token);
@@ -102,19 +157,24 @@ class Auth {
           this.tokens[userId] = [token];
         }
 
+        this.UserTokenModel.create({
+          user_id: userId,
+          token,
+        });
+
         return resolve(token);
       });
     });
   }
 
-  authenticate(token, givenUserId = false) {
+  authenticate(token, givenUserId) {
     for (const [userId, tokens] of Object.entries(this.tokens)) {
       if (givenUserId && givenUserId !== userId) {
         continue;
       }
 
       if (tokens.indexOf(token) !== -1) {
-        return config.users.find(user => user.id === userId);
+        return this.core.config.users.find(user => user.id === userId);
       }
     }
 

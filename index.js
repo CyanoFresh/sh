@@ -20,7 +20,7 @@ const Modules = require('./utils/modules');
  * @param {express} express
  * @param {Router} apiRouter
  * @param {Aedes} aedes
- * @param sequelize
+ * @param {Sequelize} sequelize
  */
 class Core extends EventEmitter {
   constructor() {
@@ -31,6 +31,8 @@ class Core extends EventEmitter {
     this.initDB();
     this.initMQTT();
     this.initWeb();
+
+    this.sequelize.sync();
   }
 
   initWeb() {
@@ -189,11 +191,10 @@ class Core extends EventEmitter {
     });
 
     this.sequelize.authenticate()
-      .then(() => {
-        console.log('DB connected');
-      })
+      .then(() => console.log('DB connected'))
       .catch(err => {
-        console.error('DB error: ', err);
+        console.error(err);
+        process.exit();
       });
   }
 }

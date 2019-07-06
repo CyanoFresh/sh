@@ -6,19 +6,19 @@ module.exports = {
   dashboards: require('./dashboards'),
   items: require('./items'),
   ports: {
-    MQTT: process.env.MQTT_PORT || 1883,
-    MQTT_WS: process.env.MQTT_WS_PORT || 8888,
-    HTTP: process.env.HTTP_PORT || 80,
+    MQTT: process.env.MQTT_PORT,
+    MQTT_WS: process.env.MQTT_WS_PORT,
+    HTTP: process.env.HTTP_PORT,
   },
   auth: {
     maxTokens: 5,
     tokenSize: 48,
   },
   db: {
-    host: '127.0.0.1',
-    port: 3306,
-    name: 'sh',
-    username: 'root',
-    password: 'qwerty',
-  }
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    name: process.env.DB_NAME,
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+  },
 };

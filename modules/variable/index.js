@@ -1,25 +1,29 @@
+const Sequelize = require('sequelize');
+const moment = require('moment');
+
+const Op = Sequelize.Op;
+
+const MAX_HISTORY_DAYS = 3;
+
 class Variable {
   constructor(config, items, core) {
     this.id = 'variable';
     this.name = 'Variable';
+    this.core = core;
     this.config = {
       defaultState: {
-        value: 'N/A',
+        value: '∅',
         lastUpdate: null,
       },
       defaultConfig: {
         color: 'default',
-        historyCount: 20,
       },
       items,
       ...config,
     };
     this.states = {};
-    this.history = {};
 
-    this.initData();
-
-    core.aedes.on('publish', ({ topic, payload }) => {
+    this.core.aedes.on('publish', ({ topic, payload }) => {
       const [module, itemId, action] = topic.split('/');
 
       if (module === this.id) {
@@ -33,8 +37,8 @@ class Variable {
       }
     });
 
-    core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
-      const { itemId } = req.params;
+    this.core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
+      const { itemId, period } = req.params;
 
       const item = this.config.items.find(item => {
         return item.id === itemId;
@@ -46,36 +50,109 @@ class Variable {
         return next(err);
       }
 
-      const history = this.history[item.id];
+      const minMoment = moment();
 
-      return res.json({
-        ok: true,
-        item,
-        history,
-      });
+      switch (period) {
+        case '3_days':
+          minMoment.subtract(3, 'days');
+          break;
+        case '1_day':
+          minMoment.subtract(1, 'days');
+          break;
+        case '12_hours':
+          minMoment.subtract(12, 'hours');
+          break;
+        default:
+        case '6_hours':
+          minMoment.subtract(6, 'hours');
+          break;
+        case '3_hours':
+          minMoment.subtract(3, 'hours');
+          break;
+      }
+
+      this.Variable
+        .findAll({
+          where: {
+            item_id: item.id,
+            date: {
+              [Op.gte]: minMoment.unix(),
+            },
+          },
+          order: [
+            ['date', 'ASC'],
+          ],
+          attributes: ['date', 'value'],
+        })
+        .then(history => res.json({
+          ok: true,
+          item,
+          history,
+        }));
     });
+
+    this.Variable = this.core.sequelize.define('variable', {
+      item_id: {
+        type: Sequelize.STRING(200),
+        allowNull: false,
+      },
+      value: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+      },
+      date: {
+        type: Sequelize.INTEGER.UNSIGNED,
+      },
+    }, {
+      timestamps: false,
+      indexes: [
+        {
+          fields: ['item_id'],
+        },
+      ],
+    });
+
+    this.initData();
   }
 
   onUpdate(itemId, data) {
-    const date = new Date();
-
+    // Save to memory
     this.states[itemId].value = data;
-    this.states[itemId].lastUpdate = date;
+    this.states[itemId].lastUpdate = moment().unix();
 
-    this._checkHistoryCount(itemId);
-
-    this.history[itemId].push({
-      date,
+    // Save to DB
+    this.Variable.create({
+      item_id: itemId,
       value: data,
+      date: moment().unix(),
     });
+
+    // Delete old history if exists
+    this.deleteOldHistory();
   }
 
   initData() {
-    this.config.items.forEach((item, index) => {
+    this.config.items.forEach(async (item, index) => {
       this.states[item.id] = { ...this.config.defaultState };
-      this.history[item.id] = [];
 
-      // Merge with default configuration
+      try {
+        const lastVariableModel = await this.Variable.findOne({
+          where: {
+            item_id: item.id,
+          },
+          order: [
+            ['date', 'DESC'],
+          ],
+        });
+
+        if (lastVariableModel) {
+          this.states[item.id].lastUpdate = lastVariableModel.date;
+        }
+      } catch (e) {
+        return console.error(e);
+      }
+
+      // Merge with default config
       this.config.items[index] = {
         ...this.config.defaultConfig,
         ...item,
@@ -98,17 +175,14 @@ class Variable {
     };
   }
 
-  _checkHistoryCount(itemId) {
-    if (!this.history[itemId]) {
-      this.history[itemId] = [];
-      return;
-    }
-
-    const item = this.config.items.find(item => item.id === itemId);
-
-    if (this.history[itemId].length >= item.historyCount) {
-      this.history[itemId].shift();
-    }
+  deleteOldHistory() {
+    return this.Variable.destroy({
+      where: {
+        date: {
+          [Op.lt]: moment().subtract(MAX_HISTORY_DAYS, 'days').unix(),
+        },
+      },
+    });
   }
 }
 

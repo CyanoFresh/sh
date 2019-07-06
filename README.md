@@ -1,6 +1,34 @@
 Solomaha Home
 ====
 
+## Installation
+
+1. Clone repo && cd:
+
+    ```
+    git clone https://github.com/CyanoFresh/sh
+    cd sh
+    ```
+
+2. Install deps 
+
+    -  production:
+    
+        ```
+        npm ci
+        ```
+        
+    - dev:
+    
+        ```
+        npm i
+        ```
+3. Copy (if dev) and configure env variables:
+
+    ```sh
+    cp .env.example .env
+    ```
+
 ## Topic structure:
 
 ### Web Panel
