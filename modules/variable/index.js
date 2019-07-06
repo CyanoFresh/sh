@@ -38,10 +38,8 @@ class Variable {
     });
 
     this.core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
-      const { itemId, period } = req.params;
-
       const item = this.config.items.find(item => {
-        return item.id === itemId;
+        return item.id === req.params.itemId;
       });
 
       if (!item) {
@@ -52,22 +50,22 @@ class Variable {
 
       const minMoment = moment();
 
-      switch (period) {
+      switch (req.query.period) {
         case '3_days':
           minMoment.subtract(3, 'days');
           break;
-        case '1_day':
-          minMoment.subtract(1, 'days');
+        case '24_hours':
+          minMoment.subtract(24, 'hours');
           break;
         case '12_hours':
           minMoment.subtract(12, 'hours');
           break;
+        case '3_hours':
+          minMoment.subtract(3, 'hours');
+          break;
         default:
         case '6_hours':
           minMoment.subtract(6, 'hours');
-          break;
-        case '3_hours':
-          minMoment.subtract(3, 'hours');
           break;
       }
 
@@ -108,6 +106,9 @@ class Variable {
       indexes: [
         {
           fields: ['item_id'],
+        },
+        {
+          fields: ['date'],
         },
       ],
     });
