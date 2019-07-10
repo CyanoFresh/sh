@@ -62,28 +62,28 @@ class Plant {
     }
   }
 
-  onUpdate(itemId, data) {
-    if (data.moisture) {
-      this.states[itemId].moisture = data.moisture;
+  onUpdate(itemId, { moisture, minMoisture, duration }) {
+    if (moisture) {
+      this.states[itemId].moisture = moisture;
     }
 
-    if (data.minMoisture || data.duration) {
-      const historyData = {};
+    const historyData = {};
 
-      if (data.minMoisture) {
-        historyData.oldMoisture = this.states[itemId].minMoisture;
-        historyData.newMoisture = data.minMoisture;
+    if (minMoisture && this.states[itemId].minMoisture !== minMoisture) {
+      historyData.oldMoisture = this.states[itemId].minMoisture;
+      historyData.newMoisture = minMoisture;
 
-        this.states[itemId].minMoisture = data.minMoisture;
-      }
+      this.states[itemId].minMoisture = minMoisture;
+    }
 
-      if (data.duration) {
-        historyData.oldDuration = this.states[itemId].duration;
-        historyData.newDuration = data.duration;
+    if (duration && this.states[itemId].duration !== duration) {
+      historyData.oldDuration = this.states[itemId].duration;
+      historyData.newDuration = duration;
 
-        this.states[itemId].duration = data.duration;
-      }
+      this.states[itemId].duration = duration;
+    }
 
+    if (Object.keys(historyData).length) {
       this.addHistory(itemId, HISTORY_TYPES.SETTINGS_CHANGED, historyData);
     }
   }
