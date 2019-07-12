@@ -3,6 +3,7 @@ const moment = require('moment');
 
 const Op = Sequelize.Op;
 
+const HISTORY_CLEAR_INTERVAL = 3 * 3600 * 1000;  // every 3 hours
 const MAX_HISTORY_DAYS = 3;
 
 class Variable {
@@ -114,6 +115,17 @@ class Variable {
     });
 
     this.initData();
+
+    // Clear old history by interval
+    setInterval(() => {
+      this.Variable.destroy({
+        where: {
+          date: {
+            [Op.lt]: moment().subtract(MAX_HISTORY_DAYS, 'days').unix(),
+          },
+        },
+      });
+    }, HISTORY_CLEAR_INTERVAL);
   }
 
   onUpdate(itemId, data) {
@@ -127,9 +139,6 @@ class Variable {
       value: data,
       date: moment().unix(),
     });
-
-    // Delete old history if exists
-    this.deleteOldHistory();
   }
 
   initData() {
@@ -174,16 +183,6 @@ class Variable {
     return {
       ...this.states[itemId],
     };
-  }
-
-  deleteOldHistory() {
-    return this.Variable.destroy({
-      where: {
-        date: {
-          [Op.lt]: moment().subtract(MAX_HISTORY_DAYS, 'days').unix(),
-        },
-      },
-    });
   }
 }
 
