@@ -33,24 +33,37 @@ module.exports = [
     id: 'telegram',
     local: true,
     frontend: false,
-    chatId: -123,
-    token: '307142828:AAHVfYBPlRnHIXjDGB5qVkjMaR2xPdUF7CQ',
-    rules: [
-      module => module.send('Server started'),
-      module => {
-        module.core.aedes.on('publish', ({ topic, payload }) => {
-          if (topic === 'variable/door') {
-            try {
-              const data = JSON.parse(payload.toString());
-
-              let msg = `Door was ${data}`;
-
-              module.send(msg);
-            } catch (e) {
-              console.error(e);
-            }
-          }
-        });
+    chatId: process.env.TELEGRAM_CHATID,
+    token: process.env.TELEGRAM_TOKEN,
+    listeners: [
+      {
+        name: 'On server start',
+        callback: instance =>
+          instance.core.on('core.init', () =>
+            instance.send('Server started'),
+          ),
+      },
+      {
+        name: 'On device disconnect',
+        callback: instance => setTimeout(
+          () =>
+            instance.core.on('device.disconnected',
+              deviceId =>
+                instance.send(`Device '${deviceId}' disconnected`),
+            ),
+          5000,
+        ),
+      },
+      {
+        name: 'On device connect',
+        callback: instance => setTimeout(
+          () =>
+            instance.core.on('device.connected',
+              deviceId =>
+                instance.send(`Device '${deviceId}' connected`),
+            ),
+          5000,
+        ),
       },
     ],
   },

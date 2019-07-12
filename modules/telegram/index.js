@@ -11,9 +11,10 @@ class Telegram {
   }
 
   subscribeToEvents() {
-    this.config.rules.forEach(rule => {
-      if (typeof rule === 'function') {
-        rule(this);
+    this.config.listeners.forEach(listener => {
+      if (typeof listener.callback === 'function') {
+        listener.callback(this);
+        console.info(`[Telegram] Subscribed to '${listener.name}' event`);
       }
     });
   }
@@ -26,11 +27,13 @@ class Telegram {
    * @param {String} token
    * @param {String} options
    */
-  send(message, chatId, token, options) {
+  send(message, chatId, token, options = '') {
     chatId = chatId || this.config.chatId;
     token = token || this.config.token;
 
-    https.get(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${message}${options}`);
+    https
+      .get(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${message}${options}`)
+      .on('error', e => console.error('[Telegram] ', e));
   }
 }
 

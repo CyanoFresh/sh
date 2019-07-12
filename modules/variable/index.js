@@ -12,7 +12,7 @@ class Variable {
     this.core = core;
     this.config = {
       defaultState: {
-        value: '∅',
+        value: null,
         lastUpdate: null,
       },
       defaultConfig: {

@@ -33,6 +33,8 @@ class Core extends EventEmitter {
     this.initWeb();
 
     this.sequelize.sync();
+
+    this.emit('core.init');
   }
 
   initWeb() {
