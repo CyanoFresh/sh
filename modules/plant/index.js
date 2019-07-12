@@ -1,24 +1,66 @@
+const Sequelize = require('sequelize');
+const moment = require('moment');
+
+const Op = Sequelize.Op;
+
 const HISTORY_TYPES = {
   WATERED: 'watered',
   SETTINGS_CHANGED: 'settings',
 };
 
+const HISTORY_CLEAR_INTERVAL = 6 * 3600000;  // every 6 hours
+const MAX_HISTORY_DAYS = 7;
+
 class Plant {
   constructor(config, items, core) {
     this.id = 'plant';
     this.name = 'Plant';
+    this.core = core;
     this.config = {
       defaultState: {
-        moisture: 'N/A',
+        moisture: null,
         minMoisture: 80,
         duration: 10,
       },
       items,
-      maxHistorySize: 7,
       ...config,
     };
     this.states = {};
+    /**
+     * @deprecated
+     */
     this.history = {};
+
+    this.HistoryModel = this.core.sequelize.define('plant_history', {
+      item_id: {
+        type: Sequelize.STRING(200),
+        allowNull: false,
+      },
+      data: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+        get() {
+          return this.getDataValue('data') && JSON.parse(this.getDataValue('data'));
+        },
+        set(value) {
+          this.setDataValue('data', JSON.stringify(value));
+        },
+      },
+      date: {
+        type: Sequelize.INTEGER.UNSIGNED,
+        allowNull: false,
+      },
+    }, {
+      timestamps: false,
+      indexes: [
+        {
+          fields: ['item_id'],
+        },
+        {
+          fields: ['date'],
+        },
+      ],
+    });
 
     this.initData();
 
@@ -49,25 +91,51 @@ class Plant {
         return next(err);
       }
 
-      return res.json({
+      return this.HistoryModel.findAll({
+        where: {
+          item_id: item.id,
+        },
+        order: [
+          ['date', 'ASC'],
+        ],
+        attributes: ['date', 'data'],
+      }).then(history => res.json({
         ok: true,
-        history: this.history[item.id] || [],
-      });
+        item,
+        history,
+      }));
     });
+
+    setInterval(() => this.HistoryModel.destroy({
+      where: {
+        date: {
+          [Op.lt]: moment().subtract(MAX_HISTORY_DAYS, 'days').unix(),
+        },
+      },
+    }), HISTORY_CLEAR_INTERVAL);
   }
 
-  onAction(type, itemId, data) {
+  onAction(type, itemId) {
     if (type === 'watered') {
-      this.addHistory(itemId, HISTORY_TYPES.WATERED);
+      // Save to DB
+      this.HistoryModel.create({
+        item_id: itemId,
+        data: {
+          type: HISTORY_TYPES.WATERED,
+        },
+        date: moment().unix(),
+      });
     }
   }
 
-  onUpdate(itemId, { moisture, minMoisture, duration }) {
+  onUpdate(itemId, { moisture, minMoisture = false, duration = false }) {
     if (moisture) {
       this.states[itemId].moisture = moisture;
     }
 
-    const historyData = {};
+    const historyData = {
+      type: HISTORY_TYPES.SETTINGS_CHANGED,
+    };
 
     if (minMoisture && this.states[itemId].minMoisture !== minMoisture) {
       historyData.oldMoisture = this.states[itemId].minMoisture;
@@ -83,17 +151,19 @@ class Plant {
       this.states[itemId].duration = duration;
     }
 
-    if (Object.keys(historyData).length) {
-      this.addHistory(itemId, HISTORY_TYPES.SETTINGS_CHANGED, historyData);
+    if (Object.keys(historyData).length > 1) {  // if settings were changed
+      // Save to DB
+      this.HistoryModel.create({
+        item_id: itemId,
+        data: historyData,
+        date: moment().unix(),
+      });
     }
   }
 
   initData() {
     this.config.items.forEach(item => {
-      this.states[item.id] = {
-        ...this.config.defaultState,
-      };
-      this.history[item.id] = [];
+      this.states[item.id] = { ...this.config.defaultState };
     });
   }
 
@@ -104,18 +174,6 @@ class Plant {
       ...item,
       ...this.states[itemId],
     };
-  }
-
-  addHistory(itemId, type, data) {
-    const date = new Date();
-
-    this.history[itemId].unshift({
-      type,
-      date,
-      ...data,
-    });
-
-    this.history[itemId] = this.history[itemId].slice(0, this.config.maxHistorySize);
   }
 }
 

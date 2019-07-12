@@ -3,7 +3,7 @@ const moment = require('moment');
 
 const Op = Sequelize.Op;
 
-const HISTORY_CLEAR_INTERVAL = 3 * 3600 * 1000;  // every 3 hours
+const HISTORY_CLEAR_INTERVAL = 3 * 3600000;  // every 3 hours
 const MAX_HISTORY_DAYS = 3;
 
 class Variable {
@@ -70,7 +70,7 @@ class Variable {
           break;
       }
 
-      this.Variable
+      return this.Variable
         .findAll({
           where: {
             item_id: item.id,
@@ -117,15 +117,13 @@ class Variable {
     this.initData();
 
     // Clear old history by interval
-    setInterval(() => {
-      this.Variable.destroy({
-        where: {
-          date: {
-            [Op.lt]: moment().subtract(MAX_HISTORY_DAYS, 'days').unix(),
-          },
+    setInterval(() => this.Variable.destroy({
+      where: {
+        date: {
+          [Op.lt]: moment().subtract(MAX_HISTORY_DAYS, 'days').unix(),
         },
-      });
-    }, HISTORY_CLEAR_INTERVAL);
+      },
+    }), HISTORY_CLEAR_INTERVAL);
   }
 
   onUpdate(itemId, data) {
@@ -175,12 +173,6 @@ class Variable {
 
     return {
       ...item,
-      ...this.getState(itemId),
-    };
-  }
-
-  getState(itemId) {
-    return {
       ...this.states[itemId],
     };
   }
