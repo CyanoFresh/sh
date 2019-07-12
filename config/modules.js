@@ -65,6 +65,10 @@ module.exports = [
           5000,
         ),
       },
+      {
+        name: 'On buzzer unlocked',
+        callback: instance => instance.core.on('buzzer.unlocked', () => instance.send(`Buzzer was unlocked`)),
+      },
     ],
   },
 ];
