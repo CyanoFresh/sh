@@ -26,10 +26,6 @@ class Plant {
       ...config,
     };
     this.states = {};
-    /**
-     * @deprecated
-     */
-    this.history = {};
 
     this.HistoryModel = this.core.sequelize.define('plant_history', {
       item_id: {
@@ -162,8 +158,38 @@ class Plant {
   }
 
   initData() {
-    this.config.items.forEach(item => {
-      this.states[item.id] = { ...this.config.defaultState };
+    this.config.items.forEach(async item => {
+      const stateFromDb = {};
+
+      try {
+        const historyItem = await this.HistoryModel.findOne({
+          where: {
+            item_id: item.id,
+          },
+          attributes: ['data'],
+          order: [
+            ['date', 'DESC'],
+          ],
+        });
+
+        if (historyItem) {
+          const data = historyItem.data;
+
+          if (data.newMoisture) {
+            stateFromDb.minMoisture = data.newMoisture;
+          }
+
+          if (data.newDuration) {
+            stateFromDb.duration = data.newDuration;
+          }
+        }
+      } catch (e) {
+      }
+
+      this.states[item.id] = {
+        ...this.config.defaultState,
+        ...stateFromDb,
+      };
     });
   }
 
