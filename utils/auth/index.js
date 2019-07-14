@@ -1,50 +1,47 @@
 const crypto = require('crypto');
 const express = require('express');
-const Sequelize = require('sequelize');
+const argon2 = require('argon2');
+
+const UserTokenModel = require('./UserTokenModel');
+const UserModel = require('./UserModel');
 
 class Auth {
   constructor(core) {
     this.core = core;
     /**
+     * @type UserModel
+     */
+    this.UserModel = UserModel(this.core.sequelize);
+    /**
+     * @type UserTokenModel
+     */
+    this.UserTokenModel = UserTokenModel(this.core.sequelize);
+    /**
      * {string} userId => {string[]} tokens
      * @type {Object}
+     * @deprecated should be removed in next version
      */
     this.tokens = {};
 
-    this.loadDB();
+    this.loadTokens();
     this.loadWeb();
   }
 
-  loadDB() {
-    this.UserTokenModel = this.core.sequelize.define('user_token', {
-      user_id: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
-      },
-      token: {
-        type: Sequelize.STRING(),
-        allowNull: false,
-      },
-    }, {
-      timestamps: false,
-      indexes: [
-        {
-          fields: ['user_id', 'token'],
-        },
-      ],
-    });
+  /**
+   * @deprecated
+   */
+  async loadTokens() {
+    // Load tokens to memory form DB
+    const userTokens = await this.UserTokenModel.findAll();
 
-    // Load tokens form DB
-    this.UserTokenModel.findAll({}).then(userTokens => {
-      userTokens.forEach(userTokenModel => {
-        const { user_id, token } = userTokenModel;
+    userTokens.forEach(userTokenModel => {
+      const { user_id, token } = userTokenModel;
 
-        if (!this.tokens.hasOwnProperty(user_id)) {
-          this.tokens[user_id] = [];
-        }
+      if (!this.tokens.hasOwnProperty(user_id)) {
+        this.tokens[user_id] = [];
+      }
 
-        this.tokens[user_id].push(token);
-      });
+      this.tokens[user_id].push(token);
     });
   }
 
@@ -179,6 +176,23 @@ class Auth {
     }
 
     return false;
+  }
+
+  async createUser(data) {
+    const hash = await argon2.hash(data.password);
+
+    const modelData = { ...data };
+
+    delete modelData.password;
+
+    return this.UserModel.create({
+      ...modelData,
+      password_hash: hash,
+    });
+  }
+
+  static verifyPassword(hash, password) {
+    return argon2.verify(hash, password);
   }
 }
 

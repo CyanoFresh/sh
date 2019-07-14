@@ -1,4 +1,4 @@
-Solomaha Home
+Solomaha Home [ALPHA]
 ====
 
 ## Installation
@@ -29,7 +29,7 @@ Solomaha Home
     cp .env.example .env
     ```
 
-## Topic structure:
+## Topic structure: (can be outdated)
 
 ### Web Panel
 

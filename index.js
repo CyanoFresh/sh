@@ -66,37 +66,38 @@ class Core extends EventEmitter {
   }
 
   initMQTT() {
-    this.aedes = Aedes();
+    this.aedes = Aedes({
+      id: 'sh',
+      authenticate: (client, username, password, callback) => {
+        if (!password || !username) {
+          console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
 
-    this.aedes.authenticate = (client, username, password, callback) => {
-      if (!password || !username) {
-        console.log(`Auth failed for '${client.id}': ${username}, ${password}`);
+          const error = new Error('No credentials provided');
+          error.returnCode = 4;
+          return callback(error, null);
+        }
 
-        const error = new Error('No credentials provided');
+        client.isDevice = username === 'device';
+
+        const passwordStr = password.toString();
+
+        if (client.isDevice) {
+          if (config.devices.find(device => device.id === client.id && device.password === passwordStr)) {
+            return callback(null, true);
+          }
+        } else {
+          if (this.auth.authenticate(passwordStr)) {
+            return callback(null, true);
+          }
+        }
+
+        console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
+
+        const error = new Error('Wrong credentials');
         error.returnCode = 4;
         return callback(error, null);
-      }
-
-      client.isDevice = username === '1' || username === 'device';
-
-      const passwordStr = password.toString();
-
-      if (client.isDevice) {
-        if (config.devices.find(device => device.id === client.id && device.password === passwordStr)) {
-          return callback(null, true);
-        }
-      } else {
-        if (this.auth.authenticate(passwordStr)) {
-          return callback(null, true);
-        }
-      }
-
-      console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
-
-      const error = new Error('Wrong credentials');
-      error.returnCode = 4;
-      return callback(error, null);
-    };
+      },
+    });
 
     this.aedes.on('publish', (packet, client) => {
       if (client) {
@@ -132,16 +133,15 @@ class Core extends EventEmitter {
         return;
       }
 
-      const userTopic = `user/${client.id}`;
+      const userTopic = `dashboards/main`;
 
       if (subscriptions.find(subscription => subscription.topic === userTopic)) {
         const sendData = {
-          dashboard: config.dashboard,
-          modules: config.modules,
+          dashboard: [],
         };
 
         // Populate items with current state
-        sendData.dashboard.forEach((room, roomIndex) => {
+        config.dashboard.forEach((room, roomIndex) => {
           room.items.forEach((itemGroup, itemGroupIndex) => {
             itemGroup.forEach((item, itemIndex) => {
               const module = core.modules[item.module];
@@ -152,7 +152,7 @@ class Core extends EventEmitter {
         });
 
         // Send only frontend modules
-        sendData.modules = sendData.modules.filter(moduleConfig => moduleConfig.frontend);
+        sendData.modules = config.modules.filter(moduleConfig => moduleConfig.frontend);
 
         client.publish({
           topic: userTopic,
@@ -186,10 +186,14 @@ class Core extends EventEmitter {
   }
 
   initDB() {
+    /**
+     * @type Sequelize
+     */
     this.sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, {
       host: config.db.host,
       port: config.db.port,
       dialect: 'mysql',
+      logging: process.env.NODE_ENV !== 'production',
     });
 
     this.sequelize.authenticate()
