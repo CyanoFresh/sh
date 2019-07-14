@@ -60,29 +60,45 @@ class Auth {
 
     const router = express.Router();
 
-    router.post('/login', (req, res, next) => {
+    router.post('/login', async (req, res, next) => {
       const { username = '', password } = req.body;
 
-      const user = this.core.config.users.find(user => user.id.toLowerCase() === username.toLowerCase() && user.password === password);
+      try {
+        const user = await this.UserModel.findOne({
+          where: {
+            user_id: username.toLocaleLowerCase(),
+          },
+        });
 
-      if (user) {
-        // Generate, save and return token
-        this.generateToken(user.id)
-          .then(token => res.send({
+        if (user) {
+          if (!Auth.verifyPassword(user.password_hash, password)) {
+            const err = new Error('Wrong username or password');
+            err.status = 401;
+            return next(err);
+          }
+
+
+          const userTokenModel = await this.UserTokenModel.create({
+            user_id: user.user_id,
+          });
+
+          // Generate, save and return auth token
+          return this.generateToken(user.id).then(token => res.send({
             ok: true,
             user: {
               id: user.id,
               name: user.name,
-              token: token,
+              token,
             },
           }));
+        }
 
-        return;
+        const err = new Error('Wrong username or password');
+        err.status = 401;
+        return next(err);
+      } catch (e) {
+        return next(e);
       }
-
-      const err = new Error('Wrong credentials');
-      err.status = 401;
-      return next(err);
     });
 
     router.post('/logout', (req, res, next) => {
@@ -130,7 +146,10 @@ class Auth {
     return false;
   }
 
-  generateToken(userId) {
+  async generateToken(userId) {
+    const userTokenModel = await this.UserTokenModel.create({
+
+    });
     return new Promise((resolve, reject) => {
       crypto.randomBytes(this.core.config.auth.tokenSize, (err, buffer) => {
         if (err) return reject(err);
