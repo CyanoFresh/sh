@@ -43,9 +43,10 @@ class Core extends EventEmitter {
     this.express.use(express.json());
 
     this.auth = Auth(this);
+    this.express.use('/api/auth', this.auth.getRouter());
 
     this.express.apiRouter = express.Router();
-    this.express.apiRouter.use(this.auth.authenticated);
+    this.express.apiRouter.use(this.auth.authenticatedMiddleware);
 
     this.modules = Modules(this);
 
@@ -68,7 +69,7 @@ class Core extends EventEmitter {
   initMQTT() {
     this.aedes = Aedes({
       id: 'sh',
-      authenticate: (client, username, password, callback) => {
+      authenticate: async (client, username, password, callback) => {
         if (!password || !username) {
           console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
 
@@ -86,7 +87,9 @@ class Core extends EventEmitter {
             return callback(null, true);
           }
         } else {
-          if (this.auth.authenticate(passwordStr)) {
+          const isAuthenticated = await this.auth.authenticate(passwordStr);
+
+          if (isAuthenticated) {
             return callback(null, true);
           }
         }
@@ -133,11 +136,12 @@ class Core extends EventEmitter {
         return;
       }
 
-      const userTopic = `dashboards/main`;
+      const dashboardTopic = 'dashboards/main';
 
-      if (subscriptions.find(subscription => subscription.topic === userTopic)) {
+      if (subscriptions.find(subscription => subscription.topic === dashboardTopic)) {
         const sendData = {
-          dashboard: [],
+          dashboard: config.dashboard,
+          modules: config.modules.filter(moduleConfig => moduleConfig.frontend)
         };
 
         // Populate items with current state
@@ -151,11 +155,8 @@ class Core extends EventEmitter {
           });
         });
 
-        // Send only frontend modules
-        sendData.modules = config.modules.filter(moduleConfig => moduleConfig.frontend);
-
         client.publish({
-          topic: userTopic,
+          topic: dashboardTopic,
           payload: JSON.stringify(sendData),
         });
       }
@@ -193,7 +194,7 @@ class Core extends EventEmitter {
       host: config.db.host,
       port: config.db.port,
       dialect: 'mysql',
-      logging: process.env.NODE_ENV !== 'production',
+      logging: process.env.NODE_ENV === 'production' ? false : console.log,
     });
 
     this.sequelize.authenticate()

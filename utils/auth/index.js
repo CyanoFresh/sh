@@ -7,6 +7,9 @@ const UserModel = require('./UserModel');
 
 class Auth {
   constructor(core) {
+    /**
+     * @type Core
+     */
     this.core = core;
     /**
      * @type UserModel
@@ -16,110 +19,72 @@ class Auth {
      * @type UserTokenModel
      */
     this.UserTokenModel = UserTokenModel(this.core.sequelize);
-    /**
-     * {string} userId => {string[]} tokens
-     * @type {Object}
-     * @deprecated should be removed in next version
-     */
-    this.tokens = {};
-
-    this.loadTokens();
-    this.loadWeb();
   }
 
-  /**
-   * @deprecated
-   */
-  async loadTokens() {
-    // Load tokens to memory form DB
-    const userTokens = await this.UserTokenModel.findAll();
+  authenticatedMiddleware(req, res, next) {
+    const token = Auth.extractTokenFromRequest(req);
 
-    userTokens.forEach(userTokenModel => {
-      const { user_id, token } = userTokenModel;
+    if (this.authenticate(token)) {
+      return next();
+    }
 
-      if (!this.tokens.hasOwnProperty(user_id)) {
-        this.tokens[user_id] = [];
-      }
-
-      this.tokens[user_id].push(token);
-    });
+    const err = new Error('Not authorized');
+    err.status = 400;
+    return next(err);
   }
 
-  loadWeb() {
-    this.authenticated = (req, res, next) => {
-      const token = Auth.extractRequestToken(req);
+  getRouter() {
+    const authRouter = express.Router();
 
-      if (this.authenticate(token)) {
-        return next();
-      }
-
-      const err = new Error('Not authorized');
-      err.status = 400;
-      return next(err);
-    };
-
-    const router = express.Router();
-
-    router.post('/login', async (req, res, next) => {
+    authRouter.post('/login', async (req, res, next) => {
       const { username = '', password } = req.body;
 
-      try {
-        const user = await this.UserModel.findOne({
-          where: {
-            user_id: username.toLocaleLowerCase(),
-          },
-        });
-
-        if (user) {
-          if (!Auth.verifyPassword(user.password_hash, password)) {
-            const err = new Error('Wrong username or password');
-            err.status = 401;
-            return next(err);
-          }
-
-
-          const userTokenModel = await this.UserTokenModel.create({
-            user_id: user.user_id,
-          });
-
-          // Generate, save and return auth token
-          return this.generateToken(user.id).then(token => res.send({
-            ok: true,
-            user: {
-              id: user.id,
-              name: user.name,
-              token,
-            },
-          }));
-        }
-
-        const err = new Error('Wrong username or password');
-        err.status = 401;
-        return next(err);
-      } catch (e) {
-        return next(e);
-      }
-    });
-
-    router.post('/logout', (req, res, next) => {
-      const token = Auth.extractRequestToken(req);
-      const user = this.authenticate(token);
+      const user = await this.UserModel.findOne({
+        where: {
+          user_id: username.toLocaleLowerCase(),
+        },
+      });
 
       if (user) {
-        // Remove from memory
-        this.tokens[user.id] = this.tokens[user.id].filter(value => value !== token);
+        const passwordVerified = await argon2.verify(user.password_hash, password);
 
-        // Remove from DB
-        this.UserTokenModel.destroy({
-          where: {
-            user_id: user.id,
-            token,
-          },
+        if (!passwordVerified) {
+          const err = new Error('Wrong username or password');
+          err.status = 401;
+          return next(err);
+        }
+
+        const token = await this.generateToken();
+
+        await this.UserTokenModel.create({
+          ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+          user_id: user.user_id,
+          token,
         });
 
         return res.send({
           ok: true,
+          user: {
+            id: user.id,
+            name: user.name,
+            token,
+          },
         });
+      }
+
+      const err = new Error('Wrong username or password');
+      err.status = 401;
+      return next(err);
+    });
+
+    authRouter.post('/logout', async (req, res, next) => {
+      const token = Auth.extractTokenFromRequest(req);
+
+      // Remove from DB
+      if (await this.UserTokenModel.destroy({
+        where: { token },
+      })) {
+        return res.send({ ok: true });
       }
 
       const err = new Error('Token was not found');
@@ -127,10 +92,14 @@ class Auth {
       return next(err);
     });
 
-    this.core.express.use('/api/auth', router);
+    return authRouter;
   }
 
-  static extractRequestToken(req) {
+  /**
+   * @param req
+   * @returns {string|boolean}
+   */
+  static extractTokenFromRequest(req) {
     if (req.headers.authorization) {
       return req.headers.authorization;
     }
@@ -146,72 +115,43 @@ class Auth {
     return false;
   }
 
-  async generateToken(userId) {
-    const userTokenModel = await this.UserTokenModel.create({
-
-    });
+  /**
+   * @returns {Promise<string>}
+   */
+  async generateToken() {
     return new Promise((resolve, reject) => {
       crypto.randomBytes(this.core.config.auth.tokenSize, (err, buffer) => {
         if (err) return reject(err);
 
         const token = buffer.toString('base64');
 
-        if (this.tokens.hasOwnProperty(userId)) {
-          if (this.tokens[userId].length >= this.core.config.auth.maxTokens) {
-            const token = this.tokens[userId].shift();
-
-            this.UserTokenModel.destroy({
-              where: {
-                user_id: userId,
-                token,
-              },
-            });
-          }
-
-          this.tokens[userId].push(token);
-        } else {
-          this.tokens[userId] = [token];
-        }
-
-        this.UserTokenModel.create({
-          user_id: userId,
-          token,
-        });
-
         return resolve(token);
       });
     });
   }
 
-  authenticate(token, givenUserId) {
-    for (const [userId, tokens] of Object.entries(this.tokens)) {
-      if (givenUserId && givenUserId !== userId) {
-        continue;
-      }
-
-      if (tokens.indexOf(token) !== -1) {
-        return this.core.config.users.find(user => user.id === userId);
-      }
-    }
-
-    return false;
+  /**
+   * @param {string} token
+   * @returns {Promise<Model<any, any>|null>}
+   */
+  authenticate(token) {
+    return this.UserTokenModel.findOne({ where: { token } });
   }
 
+  /**
+   * @param {Object} data
+   * @returns {Promise<Model<any, any> | void>}
+   */
   async createUser(data) {
     const hash = await argon2.hash(data.password);
 
     const modelData = { ...data };
-
     delete modelData.password;
 
-    return this.UserModel.create({
+    return await this.UserModel.create({
       ...modelData,
       password_hash: hash,
     });
-  }
-
-  static verifyPassword(hash, password) {
-    return argon2.verify(hash, password);
   }
 }
 
