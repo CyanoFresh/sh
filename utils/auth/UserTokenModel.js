@@ -15,6 +15,7 @@ module.exports = sequelize => sequelize.define('user_token', {
   indexes: [
     {
       fields: ['token'],
+      unique: true,
     },
     {
       fields: ['user_id'],

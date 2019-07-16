@@ -19,18 +19,45 @@ class Auth {
      * @type UserTokenModel
      */
     this.UserTokenModel = UserTokenModel(this.core.sequelize);
+
+    this.checkUsers();
   }
 
-  authenticatedMiddleware(req, res, next) {
-    const token = Auth.extractTokenFromRequest(req);
+  async checkUsers() {
+    const count = await this.UserModel.count();
+    const rootExists = await this.UserModel.count({
+      where: {
+        user_id: 'root',
+      },
+    }) > 0;
 
-    if (this.authenticate(token)) {
-      return next();
+    if (count === 0 && !rootExists) {
+      const rootModel = await this.createUser({
+        user_id: 'root',
+        password: 'root',
+      });
+
+      if (rootModel) {
+        console.log('Root user with password \'root\' was created');
+      }
     }
+  }
 
-    const err = new Error('Not authorized');
-    err.status = 400;
-    return next(err);
+  async authenticatedMiddleware(req, res, next) {
+    try {
+      const token = Auth.extractTokenFromRequest(req);
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+      if (await this.authenticate(token, ip)) {
+        return next();
+      }
+
+      const err = new Error('Unauthorized');
+      err.status = 400;
+      return next(err);
+    } catch (e) {
+      return next(e);
+    }
   }
 
   getRouter() {
@@ -45,45 +72,55 @@ class Auth {
         },
       });
 
-      if (user) {
-        const passwordVerified = await argon2.verify(user.password_hash, password);
-
-        if (!passwordVerified) {
-          const err = new Error('Wrong username or password');
-          err.status = 401;
-          return next(err);
-        }
-
-        const token = await this.generateToken();
-
-        await this.UserTokenModel.create({
-          ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-          user_id: user.user_id,
-          token,
-        });
-
-        return res.send({
-          ok: true,
-          user: {
-            id: user.id,
-            name: user.name,
-            token,
-          },
-        });
+      if (!user) {
+        const err = new Error('Wrong username or password');
+        err.status = 401;
+        return next(err);
       }
 
-      const err = new Error('Wrong username or password');
-      err.status = 401;
-      return next(err);
+      const passwordVerified = await argon2.verify(user.password_hash, password);
+
+      if (!passwordVerified) {
+        const err = new Error('Wrong username or password');
+        err.status = 401;
+        return next(err);
+      }
+
+      const token = await this.generateToken();
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+      const userTokenModel = await this.UserTokenModel.create({
+        user_id: user.user_id,
+        token,
+        ip,
+      });
+
+      if (!userTokenModel) {
+        return next(new Error('Cannot save token'));
+      }
+
+      user.update({
+        last_login_at: Date.now() / 1000,
+      });
+
+      return res.send({
+        ok: true,
+        user: {
+          id: user.user_id,
+          name: user.name,
+          token,
+        },
+      });
     });
 
     authRouter.post('/logout', async (req, res, next) => {
       const token = Auth.extractTokenFromRequest(req);
 
-      // Remove from DB
-      if (await this.UserTokenModel.destroy({
+      const tokenRemoved = await this.UserTokenModel.destroy({
         where: { token },
-      })) {
+      });
+
+      if (tokenRemoved) {
         return res.send({ ok: true });
       }
 
@@ -97,7 +134,7 @@ class Auth {
 
   /**
    * @param req
-   * @returns {string|boolean}
+   * @returns {string|null}
    */
   static extractTokenFromRequest(req) {
     if (req.headers.authorization) {
@@ -112,7 +149,7 @@ class Auth {
       return req.body.token;
     }
 
-    return false;
+    return null;
   }
 
   /**
@@ -132,10 +169,21 @@ class Auth {
 
   /**
    * @param {string} token
-   * @returns {Promise<Model<any, any>|null>}
+   * @param {string} [ip]
+   * @returns {Promise<boolean>}
    */
-  authenticate(token) {
-    return this.UserTokenModel.findOne({ where: { token } });
+  async authenticate(token, ip) {
+    const userTokenModel = await this.UserTokenModel.findOne({ where: { token } });
+
+    if (!userTokenModel) {
+      return false;
+    }
+
+    if (ip && ip !== userTokenModel.ip) {
+      return false;
+    }
+
+    return true;
   }
 
   /**

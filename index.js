@@ -87,7 +87,7 @@ class Core extends EventEmitter {
             return callback(null, true);
           }
         } else {
-          const isAuthenticated = await this.auth.authenticate(passwordStr);
+          const isAuthenticated = await this.auth.authenticate(passwordStr, client.conn.remoteAddress);
 
           if (isAuthenticated) {
             return callback(null, true);
@@ -136,12 +136,13 @@ class Core extends EventEmitter {
         return;
       }
 
+      // Send current state for selected dashboard
       const dashboardTopic = 'dashboards/main';
 
       if (subscriptions.find(subscription => subscription.topic === dashboardTopic)) {
         const sendData = {
-          dashboard: config.dashboard,
-          modules: config.modules.filter(moduleConfig => moduleConfig.frontend)
+          dashboard: [ ...config.dashboard ],
+          modules: config.modules.filter(moduleConfig => moduleConfig.frontend),
         };
 
         // Populate items with current state
@@ -200,7 +201,7 @@ class Core extends EventEmitter {
     this.sequelize.authenticate()
       .then(() => console.log('DB connected'))
       .catch(err => {
-        console.error(err);
+        console.error('DB Error:', err);
         process.exit();
       });
   }

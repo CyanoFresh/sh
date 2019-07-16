@@ -6,7 +6,7 @@ module.exports = sequelize => sequelize.define('user', {
     allowNull: false,
   },
   password_hash: {
-    type: Sequelize.STRING(64),
+    type: Sequelize.STRING(),
     allowNull: false,
   },
   api_key: Sequelize.STRING(64),
@@ -18,9 +18,11 @@ module.exports = sequelize => sequelize.define('user', {
   indexes: [
     {
       fields: ['user_id'],
+      unique: true,
     },
     {
       fields: ['api_key'],
+      unique: true,
     },
   ],
 });
