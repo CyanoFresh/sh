@@ -21,6 +21,24 @@ class Auth {
     this.UserTokenModel = UserTokenModel(this.core.sequelize);
 
     this.checkUsers();
+
+    this.authenticatedMiddleware = async (req, res, next) => {
+      try {
+        const token = Auth.extractTokenFromRequest(req);
+        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+        if (await this.authenticate(token, ip)) {
+          return next();
+        }
+
+        const err = new Error('Unauthorized');
+        err.status = 400;
+        return next(err);
+      } catch (e) {
+        return next(e);
+      }
+    };
+
   }
 
   async checkUsers() {
@@ -40,23 +58,6 @@ class Auth {
       if (rootModel) {
         console.log('Root user with password \'root\' was created');
       }
-    }
-  }
-
-  async authenticatedMiddleware(req, res, next) {
-    try {
-      const token = Auth.extractTokenFromRequest(req);
-      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
-      if (await this.authenticate(token, ip)) {
-        return next();
-      }
-
-      const err = new Error('Unauthorized');
-      err.status = 400;
-      return next(err);
-    } catch (e) {
-      return next(e);
     }
   }
 
