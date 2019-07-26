@@ -9,7 +9,6 @@ module.exports = sequelize => sequelize.define('user_token', {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  ip: Sequelize.STRING,
 }, {
   updatedAt: false,
   indexes: [

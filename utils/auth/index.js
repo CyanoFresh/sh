@@ -19,15 +19,17 @@ class Auth {
      * @type UserTokenModel
      */
     this.UserTokenModel = UserTokenModel(this.core.sequelize);
-
-    this.checkUsers();
+    /**
+     * user_id => token[]
+     * @type {Object.<string, string[]>}
+     */
+    this.userTokens = {};
 
     this.authenticatedMiddleware = async (req, res, next) => {
       try {
         const token = Auth.extractTokenFromRequest(req);
-        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-        if (await this.authenticate(token, ip)) {
+        if (await this.authenticate(token)) {
           return next();
         }
 
@@ -39,6 +41,10 @@ class Auth {
       }
     };
 
+    Promise.all([
+      this.checkUsers(),
+      this.loadTokens(),
+    ]);
   }
 
   async checkUsers() {
@@ -61,6 +67,18 @@ class Auth {
     }
   }
 
+  async loadTokens() {
+    const userTokenModels = await this.UserTokenModel.findAll();
+
+    userTokenModels.forEach(userTokenModel => {
+      if (!this.userTokens[userTokenModel.user_id]) {
+        this.userTokens[userTokenModel.user_id] = [];
+      }
+
+      this.userTokens[userTokenModel.user_id].push(userTokenModel.token);
+    });
+  }
+
   getRouter() {
     const authRouter = express.Router();
 
@@ -71,6 +89,7 @@ class Auth {
         where: {
           user_id: username.toLocaleLowerCase(),
         },
+        attributes: ['id', 'user_id', 'password_hash', 'name'],
       });
 
       if (!user) {
@@ -88,17 +107,17 @@ class Auth {
       }
 
       const token = await this.generateToken();
-      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-      const userTokenModel = await this.UserTokenModel.create({
+      this.UserTokenModel.create({
         user_id: user.user_id,
         token,
-        ip,
       });
 
-      if (!userTokenModel) {
-        return next(new Error('Cannot save token'));
+      if (!this.userTokens[user.user_id]) {
+        this.userTokens[user.user_id] = [];
       }
+
+      this.userTokens[user.user_id].push(token);
 
       user.update({
         last_login_at: Date.now() / 1000,
@@ -170,21 +189,17 @@ class Auth {
 
   /**
    * @param {string} token
-   * @param {string} [ip]
-   * @returns {Promise<boolean>}
+   * @returns {boolean}
    */
-  async authenticate(token, ip) {
-    const userTokenModel = await this.UserTokenModel.findOne({ where: { token } });
-
-    if (!userTokenModel) {
-      return false;
+  authenticate(token) {
+    for (const user_id in this.userTokens) {
+      // noinspection JSUnfilteredForInLoop
+      if (this.userTokens[user_id].includes(token)) {
+        return true;
+      }
     }
 
-    if (ip && ip !== userTokenModel.ip) {
-      return false;
-    }
-
-    return true;
+    return false;
   }
 
   /**

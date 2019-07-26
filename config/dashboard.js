@@ -63,7 +63,6 @@ module.exports = [
           module: 'variable',
           name: 'Air Pressure',
           suffix: ' hPa',
-          historyCount: 60,
           color: 'blue',
         },
       ],
