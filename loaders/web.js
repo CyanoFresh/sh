@@ -22,8 +22,7 @@ const DBLoader = (core) => {
   core.modules = Modules(core);
 
   core.express.apiRouter.get('/dashboard/:dashboardId', (req, res, next) => {
-    const { dashboardId } = req.params;
-    const dashboard = core.config.dashboards.find(dashboard => dashboard.id === dashboardId);
+    const dashboard = core.config.dashboards.find(dashboard => dashboard.id === req.params.dashboardId);
 
     if (!dashboard) {
       const error = new Error('Dashboard not found');
@@ -40,25 +39,29 @@ const DBLoader = (core) => {
     const moduleIDs = [];
 
     // Replace item_id with config and current state
-    for (let roomI = 0; roomI < responseData.items.length; roomI++) {
-      if (!Array.isArray(responseData.items[roomI].items)) {
+    for (let i = 0; i < responseData.items.length; i++) {
+      const room = responseData.items[i];
+
+      if (!Array.isArray(room.items)) {
         continue;
       }
 
-      for (let itemGroupI = 0; itemGroupI < responseData.items[roomI].items.length; itemGroupI++) {
-        if (!Array.isArray(responseData.items[roomI].items[itemGroupI])) {
+      for (let j = 0; j < room.items.length; j++) {
+        const itemGroup = room.items[j];
+
+        if (!Array.isArray(itemGroup)) {
           continue;
         }
 
-        for (let itemI = 0; itemI < responseData.items[roomI].items[itemGroupI].length; itemI++) {
-          const itemId = responseData.items[roomI].items[itemGroupI][itemI];
+        for (let k = 0; k < itemGroup.length; k++) {
+          const itemId = itemGroup[k];
           const item = core.config.items.find(item => item.id === itemId);
 
           if (!item) {
             console.error(`Item was not found with id '${itemId}'`);
 
             // Remove item_id
-            responseData.items[roomI].items[itemGroupI].splice(itemI, 1);
+            itemGroup.splice(k, 1);
 
             continue;
           }
@@ -67,7 +70,7 @@ const DBLoader = (core) => {
             console.error(`Invalid module specified for item '${item.id}': ${item.module}`);
 
             // Remove item_id
-            responseData.items[roomI].items[itemGroupI].splice(itemI, 1);
+            itemGroup.splice(k, 1);
 
             continue;
           }
@@ -77,7 +80,7 @@ const DBLoader = (core) => {
           }
 
           // Replace the item_id with state and config
-          responseData.items[roomI].items[itemGroupI][itemI] = core.modules[item.module].getItemData(item.id);
+          itemGroup[k] = core.modules[item.module].getItemData(item.id);
         }
       }
     }

@@ -8,7 +8,7 @@ class Dashboard extends Component {
   };
 
   componentDidMount() {
-    console.log('Dashboard mount', this.props);
+    console.log('Dashboard mount');
 
     this.load();
   };
@@ -18,7 +18,7 @@ class Dashboard extends Component {
       return;
     }
 
-    console.log('Dashboard update', this.props, prevProps);
+    console.log('Dashboard update');
 
     this.load();
   };
@@ -43,6 +43,8 @@ class Dashboard extends Component {
           error: 'Invalid dashboard data',
         });
       }
+
+      console.log(res.data);
 
       return this.setState({
         loading: false,
