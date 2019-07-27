@@ -1,9 +1,9 @@
 import Auth from './Auth';
 import { EventEmitter } from 'events';
 import axios from 'axios';
-import mqtt from 'mqtt';
+import { connect } from 'mqtt';
 
-class Core extends EventEmitter {
+class WebCore extends EventEmitter {
   /**
    * @type Auth
    */
@@ -54,9 +54,9 @@ class Core extends EventEmitter {
     if (this.socket) {
       this.socket.reconnect();
     } else {
-      const clientId = this.auth.userData.id + '@' + (Date.now() / 1000 | 0);
+      const clientId = this.auth.userData.id + '@' + (Date.now() / 1000 | 0); // https://stackoverflow.com/a/221297/4009260
 
-      this.socket = mqtt.connect(process.env.REACT_APP_MQTT_URL, {
+      this.socket = connect(process.env.REACT_APP_MQTT_URL, {
         clientId,
         username: 'user',
         password: this.auth.userData.token,
@@ -69,4 +69,4 @@ class Core extends EventEmitter {
   }
 }
 
-export default new Core();
+export default new WebCore();

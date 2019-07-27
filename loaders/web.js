@@ -31,27 +31,13 @@ const DBLoader = (core) => {
       return next();
     }
 
-    const getItemData = (itemId) => {
-      const item = core.config.items.find(item => item.id === itemId);
-
-      if (!item) {
-        console.error(`Invalid configuration for item '${itemId}'`);
-        return null;
-      }
-
-      if (!core.modules.hasOwnProperty(item.module)) {
-        console.error(`Invalid module specified for item '${item.id}': ${item.module}`);
-        return null;
-      }
-
-      const itemData = core.modules[item.module].getItemData(item.id);
-
-      return {
-        ...itemData,
-      };
+    const responseData = {
+      ...dashboard,
+      modules: [],
     };
 
-    const responseData = { ...dashboard };
+    // Unique array of module ids used by items in this dashboard
+    const moduleIDs = [];
 
     // Replace item_id with config and current state
     for (let roomI = 0; roomI < responseData.items.length; roomI++) {
@@ -66,17 +52,43 @@ const DBLoader = (core) => {
 
         for (let itemI = 0; itemI < responseData.items[roomI].items[itemGroupI].length; itemI++) {
           const itemId = responseData.items[roomI].items[itemGroupI][itemI];
+          const item = core.config.items.find(item => item.id === itemId);
 
-          const itemData = getItemData(itemId);
+          if (!item) {
+            console.error(`Item was not found with id '${itemId}'`);
 
-          if (!itemData) {
-            // Remove item if there is no data for it
-            responseData.items[roomI].items[itemGroupI].splice(itemI,1);
-          } else {
-            responseData.items[roomI].items[itemGroupI][itemI] = itemData;
+            // Remove item_id
+            responseData.items[roomI].items[itemGroupI].splice(itemI, 1);
+
+            continue;
           }
+
+          if (!core.modules.hasOwnProperty(item.module)) {
+            console.error(`Invalid module specified for item '${item.id}': ${item.module}`);
+
+            // Remove item_id
+            responseData.items[roomI].items[itemGroupI].splice(itemI, 1);
+
+            continue;
+          }
+
+          if (moduleIDs.indexOf(item.module) === -1) {
+            moduleIDs.push(item.module);
+          }
+
+          // Replace the item_id with state and config
+          responseData.items[roomI].items[itemGroupI][itemI] = core.modules[item.module].getItemData(item.id);
         }
       }
+    }
+
+    // Replace module_id with module config
+    for (let i = 0; i < moduleIDs.length; i++) {
+      const moduleConfig = core.config.modules.find(module => module.id === moduleIDs[i]);
+
+      if (!moduleConfig.frontend) continue;
+
+      responseData.modules.push(moduleConfig);
     }
 
     return res.send({

@@ -6,9 +6,9 @@ const Aedes = require('aedes');
  * @constructor
  */
 const MQTTLoader = (core) => {
-  const aedes = Aedes({
+  core.aedes = Aedes({
     id: 'sh',
-    authenticate: async (client, username, password, callback) => {
+    authenticate: (client, username, password, callback) => {
       if (!password || !username) {
         console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
 
@@ -19,19 +19,17 @@ const MQTTLoader = (core) => {
 
       client.isDevice = username === 'device';
 
-      const passwordStr = password.toString();
-
       if (client.isDevice) {
-        if (core.config.devices.find(device => device.id === client.id && device.password === passwordStr)) {
+        if (core.config.devices.find(device => device.id === client.id && device.password === password.toString())) {
           return callback(null, true);
         }
       } else {
-        if (await core.auth.authenticate(passwordStr)) {
+        if (core.auth.authenticate(password.toString())) {
           return callback(null, true);
         }
       }
 
-      console.log(`Auth failed: ${client.id}, ${username}, ${password}`);
+      console.log(`Auth failed for Client ID ${client.id} with username: ${username}, password: ${password}`);
 
       const error = new Error('Wrong credentials');
       error.returnCode = 4;
@@ -39,13 +37,13 @@ const MQTTLoader = (core) => {
     },
   });
 
-  aedes.on('publish', (packet, client) => {
+  core.aedes.on('publish', (packet, client) => {
     if (client) {
       console.log(packet.topic, packet.payload.toString(), client.id);
     }
   });
 
-  aedes.on('client', client => {
+  core.aedes.on('client', client => {
     console.log(`${client.id} connected`);
 
     let connectedTopic;
@@ -62,13 +60,13 @@ const MQTTLoader = (core) => {
       core.emit('user.connected', userId);
     }
 
-    aedes.publish({
+    core.aedes.publish({
       topic: connectedTopic,
       payload: JSON.stringify(true),
     });
   });
 
-  aedes.on('subscribe', (subscriptions, client) => {
+  core.aedes.on('subscribe', (subscriptions, client) => {
     if (!client || client.isDevice) {
       return;
     }
@@ -100,7 +98,7 @@ const MQTTLoader = (core) => {
     }
   });
 
-  aedes.on('clientDisconnect', client => {
+  core.aedes.on('clientDisconnect', client => {
     console.log(`${client.id} disconnected`);
 
     let disconnectedTopic;
@@ -117,13 +115,11 @@ const MQTTLoader = (core) => {
       core.emit('user.disconnected', userId);
     }
 
-    aedes.publish({
+    core.aedes.publish({
       topic: disconnectedTopic,
       payload: JSON.stringify(false),
     }, () => null);
   });
-
-  return aedes;
 };
 
 module.exports = MQTTLoader;

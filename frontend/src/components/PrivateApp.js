@@ -10,19 +10,21 @@ import NoMatch from './NoMatch';
 
 class PrivateApp extends Component {
   componentDidMount() {
+    console.log('PrivateApp mount');
+
     core.connect();
 
     core.socket.on('connect', this.onConnect);
-    console.log('PrivateApp mount');
   }
 
   componentWillUnmount() {
-    core.socket.off('connect', this.onConnect);
     console.log('PrivateApp unmount');
+
+    core.socket.off('connect', this.onConnect);
   }
 
   onConnect = () => {
-    console.log('connect');
+    console.log('Socket connected');
   };
 
   render() {
@@ -43,8 +45,7 @@ class PrivateApp extends Component {
       <button onClick={logOut}>Log Out</button>
 
       <Switch>
-        <Route path="/" exact component={Dashboard}/>
-        <Route path="/:dashboard" exact component={Dashboard}/>
+        <Route path="/:dashboard?" exact component={Dashboard}/>
         <Route component={NoMatch}/>
       </Switch>
     </React.Fragment>;

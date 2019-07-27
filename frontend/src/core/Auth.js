@@ -4,7 +4,7 @@ class Auth {
   static storageKey = 'user';
 
   /**
-   * @type Core
+   * @type WebCore
    */
   core = null;
 
@@ -19,7 +19,7 @@ class Auth {
   userData = null;
 
   /**
-   * @param {Core} core
+   * @param {WebCore} core
    */
   constructor(core) {
     this.core = core;
@@ -44,8 +44,6 @@ class Auth {
   }
 
   loadFromStorage() {
-    this.storage = localStorage;
-
     let userDataStr;
 
     if ((userDataStr = localStorage.getItem(Auth.storageKey))) {

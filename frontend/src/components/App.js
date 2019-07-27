@@ -8,15 +8,14 @@ import PrivateRoute from './PrivateRoute';
 import SignIn from './SignIn';
 import PrivateApp from './PrivateApp';
 import CssBaseline from '@material-ui/core/CssBaseline';
-
-const NoMatch = () => <div className="NoMatch"><h1>404</h1></div>;
+import NoMatch from './NoMatch';
 
 function App() {
   return (
     <Router>
       <CssBaseline/>
       <Switch>
-        <Route path="/login" component={SignIn}/>
+        <Route path="/login" exact component={SignIn}/>
         <PrivateRoute path="/" component={PrivateApp}/>
         <Route component={NoMatch}/>
       </Switch>

@@ -3,7 +3,7 @@ import core from '../core';
 
 class Dashboard extends Component {
   state = {
-    loading: false,
+    loading: true,
     error: null,
   };
 
@@ -66,11 +66,9 @@ class Dashboard extends Component {
       return this.state.error;
     }
 
-
     return <React.Fragment>
       <h1>Dashboard {match.params.dashboard}</h1>
-      {this.state.loading && 'Loading...'}
-      {this.state.error}
+      {this.state.items.map(room => <div key={room.id}>{room.name}</div>)}
     </React.Fragment>;
   }
 }
