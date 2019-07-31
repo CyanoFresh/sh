@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import core from '../core';
+import Room from './Room';
+import Grid from '@material-ui/core/Grid';
 
 class Dashboard extends Component {
   state = {
@@ -8,8 +10,6 @@ class Dashboard extends Component {
   };
 
   componentDidMount() {
-    console.log('Dashboard mount');
-
     this.load();
   };
 
@@ -17,8 +17,6 @@ class Dashboard extends Component {
     if (prevProps.location === this.props.location) {
       return;
     }
-
-    console.log('Dashboard update');
 
     this.load();
   };
@@ -29,6 +27,8 @@ class Dashboard extends Component {
     });
 
     const dashboardId = this.props.match.params.dashboard || 'main';
+
+    console.log(`Loading dashboard data for id ${dashboardId}...`);
 
     try {
       const res = await core.authenticatedRequest({
@@ -46,13 +46,15 @@ class Dashboard extends Component {
 
       console.log(res.data);
 
+      await core.loadModules(res.data.modules);
+
       return this.setState({
         loading: false,
         error: null,
         ...res.data,
       });
     } catch (e) {
-      this.setState({
+      return this.setState({
         loading: false,
         error: 'Cannot fetch dashboard data',
       });
@@ -69,8 +71,11 @@ class Dashboard extends Component {
     }
 
     return <React.Fragment>
-      <h1>Dashboard {match.params.dashboard}</h1>
-      {this.state.items.map(room => <div key={room.id}>{room.name}</div>)}
+      {(match.params.dashboard && match.params.dashboard !== 'main') && <h1>Dashboard {match.params.dashboard}</h1>}
+
+      <Grid container spacing={2}>
+        {this.state.items.map(room => <Room key={room.id} {...room}/>)}
+      </Grid>
     </React.Fragment>;
   }
 }

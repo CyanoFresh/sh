@@ -31,7 +31,7 @@ const DBLoader = (core) => {
     }
 
     const responseData = {
-      ...dashboard,
+      ...JSON.parse(JSON.stringify(dashboard)), // Clone dashboard configuration
       modules: [],
     };
 
@@ -58,7 +58,7 @@ const DBLoader = (core) => {
           const item = core.config.items.find(item => item.id === itemId);
 
           if (!item) {
-            console.error(`Item was not found with id '${itemId}'`);
+            console.error(`Item with id '${itemId}' was not found in dashboard '${dashboard.id}'`);
 
             // Remove item_id
             itemGroup.splice(k, 1);

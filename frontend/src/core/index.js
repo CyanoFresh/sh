@@ -19,6 +19,11 @@ class WebCore extends EventEmitter {
    */
   socket;
 
+  /**
+   * Loaded modules
+   */
+  modules = {};
+
   constructor() {
     super();
 
@@ -45,6 +50,9 @@ class WebCore extends EventEmitter {
     });
   }
 
+  /**
+   * Connecto to the MQTT WebSocket
+   */
   connect() {
     if (!this.auth.isAuthenticated()) {
       console.error('Connect requires authentication');
@@ -64,8 +72,55 @@ class WebCore extends EventEmitter {
     }
   }
 
+  /**
+   * Disconnect from mqtt websocket
+   * @param force
+   * @returns {Promise<boolean>}
+   */
   disconnect(force = false) {
     return new Promise(res => this.socket.end(force, res));
+  }
+
+  /**
+   * @param {string} topic
+   * @param callback
+   */
+  subscribe(topic, callback) {
+    this.socket.subscribe(topic);
+
+    this.on(`topic-${topic}`, callback);
+  }
+
+  /**
+   * @param {string} topic
+   * @param callback
+   */
+  unsubscribe(topic, callback) {
+    this.client.unsubscribe(topic);
+
+    this.removeListener(`topic-${topic}`, callback);
+  }
+
+  /**
+   * @param {Object<id,...rest>[]} modules
+   */
+  async loadModules(modules) {
+    const newModules = modules.filter(config => !this.modules.hasOwnProperty(config.id));
+
+    const modulesComponents = await Promise.all(newModules.map((config) => {
+      if (config.local) {
+        return import(`../modules/${config.id}`);
+      }
+
+      return import(`${config.id}`);
+    }));
+
+    modulesComponents.forEach((Component, index) => {
+      const moduleConfig = modules[index];
+
+      this.modules[moduleConfig.id] = Component;
+      this.modules[moduleConfig.id].config = moduleConfig;
+    });
   }
 }
 
