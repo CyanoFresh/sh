@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import Widget from './Widget';
 import HistoryModal from './HistoryModal';
 
-// const MAX_HISTORY_SECONDS = 259200;   // 3 days
-
 class Variable extends Component {
   constructor(props) {
     super(props);
@@ -17,10 +15,6 @@ class Variable extends Component {
       color: props.color,
       lastUpdate: props.lastUpdate,
       openModal: false,
-      // history: [],
-      // historyPeriod: '6_hours',
-      // isLoadingHistory: false,
-      // errorLoadingHistory: null,
     };
   }
 
@@ -32,11 +26,7 @@ class Variable extends Component {
     this.props.core.unsubscribe(`variable/${this.state.id}`, this.onUpdate);
   }
 
-  onUpdate = (data) => {
-    this.setState({
-      value: data,
-    });
-  };
+  onUpdate = (value) => this.setState({ value });
 
   handleClick = () => this.setState({
     openModal: true,

@@ -62,21 +62,17 @@ class Dashboard extends Component {
   };
 
   render() {
-    const { match } = this.props;
-
     if (this.state.loading) {
       return 'Loading...';
     } else if (this.state.error) {
       return this.state.error;
     }
 
-    return <React.Fragment>
-      {(match.params.dashboard && match.params.dashboard !== 'main') && <h1>Dashboard {match.params.dashboard}</h1>}
-
+    return (
       <Grid container spacing={2}>
         {this.state.items.map(room => <Room key={room.id} {...room}/>)}
       </Grid>
-    </React.Fragment>;
+    );
   }
 }
 

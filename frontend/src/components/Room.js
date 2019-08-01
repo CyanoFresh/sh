@@ -13,6 +13,9 @@ const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: theme.spacing(),
   },
+  itemGroup: {
+    marginBottom: theme.spacing(),
+  }
 }));
 
 const Item = ({ id, module, ...rest }) => {
@@ -21,11 +24,15 @@ const Item = ({ id, module, ...rest }) => {
   return <Module.default key={id} core={core} {...Module.config} id={id} {...rest}/>;
 };
 
-const ItemGroup = ({ items }) => (
-  <Grid container spacing={1}>
-    {items.map(item => <Item key={item.id} {...item}/>)}
-  </Grid>
-);
+const ItemGroup = ({ items }) => {
+  const classes = useStyles();
+
+  return (
+    <Grid container spacing={1} className={classes.itemGroup}>
+      {items.map(item => <Item key={item.id} {...item}/>)}
+    </Grid>
+  );
+};
 
 const Room = ({ id, name, items: itemGroups }) => {
   const classes = useStyles();

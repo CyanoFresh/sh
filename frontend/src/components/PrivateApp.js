@@ -46,6 +46,8 @@ const useStyles = makeStyles(theme => ({
   },
   title: {
     flexGrow: 1,
+    fontFamily: 'Product Sans',
+    fontWeight: 'normal',
   },
   content: {
     flexGrow: 1,
@@ -126,8 +128,13 @@ const PrivateApp = ({ history }) => {
               }}
               open={open}
               onClose={handleClose}
+              PaperProps={{
+                style: {
+                  width: 200,
+                },
+              }}
             >
-              <MenuItem disabled>{core.auth.userData.name}</MenuItem>
+              <MenuItem disabled>Hi, {core.auth.userData.name}!</MenuItem>
               <MenuItem onClick={logOut}>Log Out</MenuItem>
             </Menu>
           </div>

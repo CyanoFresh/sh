@@ -1,7 +1,6 @@
 module.exports = {
   modules: require('./modules'),
   devices: require('./devices'),
-  dashboard: require('./dashboard'),
   dashboards: require('./dashboards'),
   items: require('./items'),
   ports: {
