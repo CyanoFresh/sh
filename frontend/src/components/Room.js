@@ -10,12 +10,15 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(2, 3),
     borderRadius: theme.shape.borderRadius * 4,
   },
+  title: {
+    marginBottom: theme.spacing(),
+  },
 }));
 
 const Item = ({ id, module, ...rest }) => {
   const Module = core.modules[module];
 
-  return <Module.default key={id} core={core} {...Module.config} {...rest}/>;
+  return <Module.default key={id} core={core} {...Module.config} id={id} {...rest}/>;
 };
 
 const ItemGroup = ({ items }) => (
@@ -30,7 +33,7 @@ const Room = ({ id, name, items: itemGroups }) => {
   return (
     <Grid item lg={6}>
       <Paper className={classes.root} elevation={2}>
-        <Typography variant="h5" component="h3">
+        <Typography variant="h5" component="h3" className={classes.title}>
           {name}
         </Typography>
 

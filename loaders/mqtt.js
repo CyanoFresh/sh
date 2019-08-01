@@ -66,38 +66,6 @@ const MQTTLoader = (core) => {
     });
   });
 
-  core.aedes.on('subscribe', (subscriptions, client) => {
-    if (!client || client.isDevice) {
-      return;
-    }
-
-    // Send current state for selected dashboard
-    const dashboardTopic = 'dashboards/main';
-
-    if (subscriptions.find(subscription => subscription.topic === dashboardTopic)) {
-      const sendData = {
-        dashboard: [...core.config.dashboard],
-        modules: core.config.modules.filter(moduleConfig => moduleConfig.frontend),
-      };
-
-      // Populate items with current state
-      core.config.dashboard.forEach((room, roomIndex) => {
-        room.items.forEach((itemGroup, itemGroupIndex) => {
-          itemGroup.forEach((item, itemIndex) => {
-            const module = core.modules[item.module];
-
-            sendData.dashboard[roomIndex].items[itemGroupIndex][itemIndex] = module.getItemData(item.id);
-          });
-        });
-      });
-
-      client.publish({
-        topic: dashboardTopic,
-        payload: JSON.stringify(sendData),
-      });
-    }
-  });
-
   core.aedes.on('clientDisconnect', client => {
     console.log(`${client.id} disconnected`);
 

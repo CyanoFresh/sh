@@ -4,7 +4,7 @@ import App from './components/App';
 import core from './core';
 import * as serviceWorker from './serviceWorker';
 
-window.core = core;
+window.sh = core;
 
 ReactDOM.render(<App/>, document.getElementById('root'));
 

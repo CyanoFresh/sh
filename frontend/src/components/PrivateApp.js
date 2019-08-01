@@ -92,7 +92,7 @@ const PrivateApp = ({ history }) => {
     setAnchorEl(null);
   }
 
-  return <React.Fragment>
+  return (
     <div className={classes.root}>
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar>
@@ -127,6 +127,7 @@ const PrivateApp = ({ history }) => {
               open={open}
               onClose={handleClose}
             >
+              <MenuItem disabled>{core.auth.userData.name}</MenuItem>
               <MenuItem onClick={logOut}>Log Out</MenuItem>
             </Menu>
           </div>
@@ -158,7 +159,7 @@ const PrivateApp = ({ history }) => {
         </Switch>
       </main>
     </div>
-  </React.Fragment>;
+  );
 };
 
 export default PrivateApp;

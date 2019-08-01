@@ -154,6 +154,7 @@ class Variable {
         });
 
         if (lastVariableModel) {
+          this.states[item.id].value = lastVariableModel.value;
           this.states[item.id].lastUpdate = lastVariableModel.date;
         }
       } catch (e) {

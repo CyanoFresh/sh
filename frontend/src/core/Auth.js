@@ -6,17 +6,17 @@ class Auth {
   /**
    * @type WebCore
    */
-  core = null;
+  core;
 
   /**
    * @type Storage
    */
-  storage = null;
+  storage;
 
   /**
    * @type {UserData}
    */
-  userData = null;
+  userData;
 
   /**
    * @param {WebCore} core

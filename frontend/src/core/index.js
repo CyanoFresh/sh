@@ -7,12 +7,12 @@ class WebCore extends EventEmitter {
   /**
    * @type Auth
    */
-  auth = null;
+  auth;
 
   /**
    * @type AxiosInstance
    */
-  axios = null;
+  axios;
 
   /**
    * @type MqttClient
@@ -69,6 +69,20 @@ class WebCore extends EventEmitter {
         username: 'user',
         password: this.auth.userData.token,
       });
+
+      this.socket.on('message',(topic, message) => {
+        try {
+          const data = JSON.parse(message.toString());
+
+          console.log('Socket json:', topic, data);
+
+          this.emit(`topic-${topic}`, data);
+        } catch (e) {
+          console.log('Socket: ', message, e);
+
+          this.emit('message', message, topic);
+        }
+      });
     }
   }
 
@@ -96,7 +110,7 @@ class WebCore extends EventEmitter {
    * @param callback
    */
   unsubscribe(topic, callback) {
-    this.client.unsubscribe(topic);
+    this.socket.unsubscribe(topic);
 
     this.removeListener(`topic-${topic}`, callback);
   }
