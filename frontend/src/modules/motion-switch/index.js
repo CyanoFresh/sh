@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core';
-import Switch from '@material-ui/core/Switch';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import MotionIcon from '@material-ui/icons/WifiTethering';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const styles = theme => ({
   switchButton: {
@@ -28,44 +30,48 @@ class MotionSwitch extends Component {
   }
 
   componentDidMount() {
-    this.props.socket.subscribe(`motion-switch/${this.state.id}`, this.onStateUpdate);
-    this.props.socket.subscribe(`motion-switch/${this.state.id}/motion`, this.onMotionUpdate);
+    this.props.core.subscribe(`motion-switch/${this.state.id}`, this.onStateUpdate);
+    this.props.core.subscribe(`motion-switch/${this.state.id}/motion`, this.onMotionUpdate);
   }
 
   componentWillUnmount() {
-    this.props.socket.unsubscribe(`motion-switch/${this.state.id}`, this.onStateUpdate);
-    this.props.socket.unsubscribe(`motion-switch/${this.state.id}/motion`, this.onMotionUpdate);
+    this.props.core.unsubscribe(`motion-switch/${this.state.id}`, this.onStateUpdate);
+    this.props.core.unsubscribe(`motion-switch/${this.state.id}/motion`, this.onMotionUpdate);
   }
 
   onStateUpdate = state => this.setState({ state });
   onMotionUpdate = motionEnabled => this.setState({ motionEnabled });
 
-  handleClick = () => this.props.socket.sendJson(`motion-switch/${this.state.id}/set`, !this.state.state);
-  handleMotionClick = () => this.props.socket.sendJson(`motion-switch/${this.state.id}/motion/set`, !this.state.motionEnabled);
+  handleClick = () => this.props.core.socket.publish(`motion-switch/${this.state.id}/toggle`, JSON.stringify(''));
+  handleMotionClick = () => this.props.core.socket.publish(`motion-switch/${this.state.id}/motion/set`, JSON.stringify(!this.state.motionEnabled));
 
   render() {
-    const { state, name } = this.state;
-    const { classes } = this.props;
+    const { state, motionEnabled, name } = this.state;
 
     return (
       <Grid item lg={4} md={6} sm={6} xs={12}>
-        <Button color={state ? 'primary' : 'default'}
-                variant="contained"
-                className={classes.switchButton}
-                fullWidth={true}
-                onClick={this.handleClick}>
-          {name}
-          <Switch
-            checked={this.state.motionEnabled}
-            classes={{
-              switchBase: classes.colorSwitchBase,
-            }}
-            onChange={this.handleMotionClick}
-            onClick={e => e.stopPropagation()}
-            value="checkedB"
-            color="default"
-          />
-        </Button>
+        <ButtonGroup
+          variant="contained"
+          size="large"
+          color={(state && motionEnabled) ? 'primary' : 'default'}
+          fullWidth={true}
+        >
+          <Button
+            color={state ? 'primary' : 'default'}
+            onClick={this.handleClick}
+          >
+            {name}
+          </Button>
+
+          <Tooltip title="Toggle motion-enabled light" aria-label="toggle">
+            <Button
+              color={motionEnabled ? 'primary' : 'default'}
+              onClick={this.handleMotionClick}
+            >
+              <MotionIcon/>
+            </Button>
+          </Tooltip>
+        </ButtonGroup>
       </Grid>
     );
   }

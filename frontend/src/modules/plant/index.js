@@ -3,21 +3,15 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { CircularProgress, withStyles } from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
 import withMobileDialog from '@material-ui/core/withMobileDialog/withMobileDialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import List from '@material-ui/core/List';
 import NotesIcon from '@material-ui/icons/Notes';
-import TextField from '@material-ui/core/TextField';
-import FormControl from '@material-ui/core/FormControl';
-import InputAdornment from '@material-ui/core/InputAdornment';
 import { HISTORY_TYPES, MAX_HISTORY, WATERED_TIMEOUT_RATE } from './constants';
 import HistoryItem from './HistoryItem';
+import PlantDialog from './PlantDialog';
 
 const styles = theme => ({
   paper: {
@@ -25,10 +19,6 @@ const styles = theme => ({
     background: `linear-gradient(135deg, #38ef7d, #11998e)`,
     cursor: 'pointer',
     color: '#fff',
-  },
-  loading: {
-    color: '#222',
-    marginRight: '10px',
   },
   loadingWhite: {
     color: '#fff',
@@ -69,28 +59,28 @@ class Plant extends Component {
     this.state = {
       id: props.id,
       name: props.name,
-      moisture: props.moisture,
-      minMoisture: props.minMoisture,
-      duration: props.duration,
-      isWatering: false,
-      isApplying: false,
+      moisture: props.moisture, //
+      minMoisture: props.minMoisture, //
+      duration: props.duration, //
+      isWatering: false,  ////
+      isApplying: false,  ////
       wateredMsgOpen: false,
       notificationOpen: false,
       notificationText: '',
-      history: [],
-      isLoadingHistory: false,
-      openModal: false,
+      history: [],  ////
+      isLoadingHistory: false,  ////
+      openModal: false, ////
     };
   }
 
   componentDidMount() {
-    this.props.socket.subscribe(`plant/${this.state.id}`, this.onUpdate);
-    this.props.socket.subscribe(`plant/${this.state.id}/watered`, this.onWatered);
+    this.props.core.subscribe(`plant/${this.state.id}`, this.onUpdate);
+    this.props.core.subscribe(`plant/${this.state.id}/watered`, this.onWatered);
   }
 
   componentWillUnmount() {
-    this.props.socket.unsubscribe(`plant/${this.state.id}`, this.onUpdate);
-    this.props.socket.unsubscribe(`plant/${this.state.id}/watered`, this.onWatered);
+    this.props.core.unsubscribe(`plant/${this.state.id}`, this.onUpdate);
+    this.props.core.unsubscribe(`plant/${this.state.id}/watered`, this.onWatered);
   }
 
   onWatered = () => {
@@ -150,7 +140,10 @@ class Plant extends Component {
       isWatering: true,
     });
 
-    this.props.socket.sendJson(`plant/${this.state.id}/water`, true);
+    this.props.core.socket.publish(
+      `plant/${this.state.id}/water`,
+      JSON.stringify(true),
+    );
 
     this.waterCheckTimeout = setTimeout(() => {
       this.setState({
@@ -203,39 +196,19 @@ class Plant extends Component {
       isApplying: true,
     });
 
-    this.props.socket.sendJson(`plant/${this.state.id}/set`, {
-      minMoisture: this.state.minMoisture,
-      duration: this.state.duration,
-    });
+    this.props.core.socket.publish(
+      `plant/${this.state.id}/set`,
+      JSON.stringify({
+        minMoisture: this.state.minMoisture,
+        duration: this.state.duration,
+      }),
+    );
   };
-
-  static formatDate = date => new Date(date * 1000).toLocaleString();
 
   render() {
     const { name, moisture } = this.state;
     const { classes, fullScreen } = this.props;
     const { isApplying, isLoadingHistory, duration, openModal, isWatering, minMoisture, history, notificationOpen, notificationText } = this.state;
-
-    let historyItems;
-
-    if (isLoadingHistory) {
-      historyItems = <CircularProgress size={54} thickness={5} className={classes.loading}/>;
-    } else if (history.length) {
-      historyItems = (
-        <List>
-          {history.map(historyItem =>
-            <HistoryItem key={historyItem.date} name={name} data={historyItem} formatDate={Plant.formatDate}/>,
-          )}
-        </List>
-      );
-    } else {
-      historyItems = (
-        <div className={classes.historyEmptyText}>
-          <NotesIcon/>
-          History is empty
-        </div>
-      );
-    }
 
     return (
       <React.Fragment>
@@ -264,71 +237,11 @@ class Plant extends Component {
           </Paper>
         </Grid>
 
-        <Dialog open={openModal} onClose={this.handleModalClose}
-                fullWidth
-                fullScreen={fullScreen}
-                aria-labelledby="history-title">
-          <DialogTitle id="history-title">{name}</DialogTitle>
-          <DialogContent>
-            <form onSubmit={this.handleApply}>
-              <Grid container spacing={16}>
-                <Grid item sm={6} xs={12}>
-                  <TextField
-                    id="min-moisture"
-                    label="Min Moisture"
-                    value={minMoisture}
-                    onChange={this.handleChange('minMoisture')}
-                    type="number"
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                      inputProps: { min: 1, max: 100 },
-                    }}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    fullWidth
-                    margin="normal"
-                    required
-                  />
-                </Grid>
-                <Grid item sm={6} xs={12}>
-                  <TextField
-                    id="duration"
-                    label="Duration of watering"
-                    value={duration}
-                    onChange={this.handleChange('duration')}
-                    type="number"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">sec.</InputAdornment>,
-                      inputProps: { min: 1, max: 60 },
-                    }}
-                    fullWidth
-                    margin="normal"
-                    required
-                  />
-                </Grid>
-              </Grid>
-              <FormControl margin="normal" fullWidth>
-                <Button type="submit" color="primary" variant="contained">
-                  {isApplying &&
-                  <CircularProgress size={19} thickness={5} className={classes.loadingWhite}/>}
-                  Apply
-                </Button>
-              </FormControl>
-            </form>
-
-            {historyItems}
-
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleModalClose} color="primary">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <PlantDialog
+          open={openModal}
+          onClose={this.handleModalClose}
+          {...this.props}
+        />
 
         <Snackbar
           anchorOrigin={{

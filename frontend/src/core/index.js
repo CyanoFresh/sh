@@ -70,6 +70,11 @@ class WebCore extends EventEmitter {
         password: this.auth.userData.token,
       });
 
+      this.socket.on('connect', () => this.emit('connect'));
+      this.socket.on('offline', () => this.emit('disconnect'));
+      this.socket.on('disconnect', () => this.emit('disconnect'));
+      this.socket.on('close', () => this.emit('disconnect'));
+
       this.socket.on('message',(topic, message) => {
         try {
           const data = JSON.parse(message.toString());

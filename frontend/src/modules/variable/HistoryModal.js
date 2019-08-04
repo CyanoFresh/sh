@@ -18,7 +18,7 @@ import { useTheme } from '@material-ui/core/styles';
 const useStyles = makeStyles(theme => ({
   formControl: {
     marginBottom: theme.spacing(2),
-    width: '100%',
+    width: '50%',
   },
 }));
 

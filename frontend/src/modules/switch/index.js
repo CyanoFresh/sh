@@ -4,7 +4,7 @@ import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core';
 
 const styles = theme => ({
-  switchButton: {
+  button: {
     '&:active': {
       boxShadow: theme.shadows[2],
     },
@@ -12,8 +12,6 @@ const styles = theme => ({
 });
 
 class Switch extends Component {
-  state = {};
-
   constructor(props) {
     super(props);
 
@@ -42,11 +40,14 @@ class Switch extends Component {
 
     return (
       <Grid item lg={4} md={6} sm={6} xs={12}>
-        <Button color={state ? 'primary' : 'default'}
-                variant="contained"
-                className={classes.switchButton}
-                fullWidth={true}
-                onClick={this.handleClick}>
+        <Button
+          color={state ? 'primary' : 'default'}
+          variant="contained"
+          className={classes.button}
+          fullWidth={true}
+          size="large"
+          onClick={this.handleClick}
+        >
           {name}
         </Button>
       </Grid>

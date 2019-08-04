@@ -11,12 +11,12 @@ module.exports = [
           [
             'room1-air_temperature',
             'room1-air_humidity',
-            // 'room1-plant',
+            'room1-plant',
           ],
           [
             'room1-light',
             'room1-secondary_light',
-            // 'room1-rgb',
+            'room1-rgb',
           ],
         ],
       },
@@ -39,9 +39,9 @@ module.exports = [
           //   'corridor-buzzer',
           //   'corridor-door',
           // ],
-          // [
-          //   'corridor-light',
-          // ],
+          [
+            'corridor-light',
+          ],
         ],
       },
       {

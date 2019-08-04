@@ -4,15 +4,15 @@ import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/core';
 import RGBDialog from './Dialog';
 import { MODE } from './constants';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
 
-const styles = {
-  rgbButton: {
-    'border-width': '2px',
-    '&:hover': {
-      'border-width': '2px',
-    }
+const styles = theme => ({
+  button: {
+    '&:active': {
+      boxShadow: theme.shadows[2],
+    },
   },
-};
+});
 
 class Rgb extends Component {
   constructor(props) {
@@ -32,32 +32,22 @@ class Rgb extends Component {
   }
 
   componentDidMount() {
-    this.props.socket.subscribe(`rgb/${this.state.id}`, this.onUpdate);
+    this.props.core.subscribe(`rgb/${this.state.id}`, this.onUpdate);
   }
 
   componentWillUnmount() {
-    this.props.socket.unsubscribe(`rgb/${this.state.id}`, this.onUpdate);
+    this.props.core.unsubscribe(`rgb/${this.state.id}`, this.onUpdate);
   }
 
-  onUpdate = (data) => this.setState({
-    ...data,
-  });
+  onUpdate = (data) => this.setState(data);
 
-  update = (id, newState) => {
-    this.props.socket.sendJson(`rgb/${id}/set`, newState);
+  update = (newState) => {
+    this.props.core.socket.publish(`rgb/${this.state.id}/set`, JSON.stringify(newState));
   };
 
-  handleButtonClick = () => {
-    this.setState({
-      open: true,
-    });
-  };
+  handleButtonClick = () => this.setState({ open: true });
 
-  handleClose = () => {
-    this.setState({
-      open: false,
-    });
-  };
+  handleClose = () => this.setState({ open: false });
 
   render() {
     const { mode, red, green, blue, name, open } = this.state;
@@ -66,15 +56,18 @@ class Rgb extends Component {
 
     return (
       <Grid item lg={4} md={6} sm={6} xs={12}>
-        <Button color={isOn ? 'primary' : 'default'}
-                variant={'outlined'}
-                fullWidth={true}
-                className={classes.rgbButton}
-                onClick={this.handleButtonClick}>
+        <Button
+          color={isOn ? 'primary' : 'default'}
+          variant="contained"
+          fullWidth={true}
+          className={classes.button}
+          size="large"
+          onClick={this.handleButtonClick}
+        >
           {name}
         </Button>
 
-        <RGBDialog open={open} onClose={this.handleClose} update={this.update} {...this.state}/>
+        <RGBDialog open={open} onClose={this.handleClose} core={this.props.core} {...this.state}/>
       </Grid>
     );
   }

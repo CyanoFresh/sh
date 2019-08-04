@@ -6,7 +6,7 @@ import Avatar from '@material-ui/core/Avatar';
 import ListItemText from '@material-ui/core/ListItemText';
 import { HISTORY_TYPES } from './constants';
 
-const HistoryItem = ({ name, data, formatDate }) => {
+const HistoryItem = ({ name, data }) => {
   let text = 'Unknown type';
   let icon;
 
@@ -36,7 +36,7 @@ const HistoryItem = ({ name, data, formatDate }) => {
         {icon}
       </Avatar>
 
-      <ListItemText primary={text} secondary={formatDate(date)}/>
+      <ListItemText primary={text} secondary={new Date(date * 1000).toLocaleString()}/>
     </ListItem>
   );
 };

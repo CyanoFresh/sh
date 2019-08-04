@@ -18,7 +18,7 @@ import withStyles from '@material-ui/core/styles/withStyles';
 
 const classes = theme => ({
   dialogContent: {
-    padding: `${theme.spacing.unit}px ${theme.spacing.unit / 2}px`,
+    padding: theme.spacing(1, 1 / 2),
   },
 });
 
@@ -49,16 +49,27 @@ class RGBDialog extends Component {
     });
   };
 
-  handleRainbow = () => {
-    this.props.update(this.props.id, {
+  handleRainbow = () => this.props.core.socket.publish(
+    `rgb/${this.props.id}/set`,
+    JSON.stringify({
       mode: MODE.RAINBOW,
       brightness: this.state.brightness,
       speed: this.state.speed,
-    });
-  };
+    }),
+  );
+
+  handleColorChange = ({ rgb }) => this.props.core.socket.publish(
+    `rgb/${this.props.id}/set`,
+    JSON.stringify({
+      mode: MODE.COLOR,
+      red: rgb.r,
+      green: rgb.g,
+      blue: rgb.b,
+    }),
+  );
 
   render() {
-    const { fullScreen, update, red, green, blue, id, name, open, onClose, classes } = this.props;
+    const { fullScreen, red, green, blue, name, open, onClose, classes } = this.props;
     const { selectedTab, brightness, speed } = this.state;
 
     return (
@@ -84,14 +95,7 @@ class RGBDialog extends Component {
                   b: blue,
                 }}
                 disableAlpha={true}
-                onChangeComplete={({ rgb }) => {
-                  update(id, {
-                    mode: MODE.COLOR,
-                    red: rgb.r,
-                    green: rgb.g,
-                    blue: rgb.b,
-                  });
-                }}
+                onChangeComplete={this.handleColorChange}
               />
             </div>
             <div className={classes.dialogContent}>
