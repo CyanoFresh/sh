@@ -35,10 +35,10 @@ module.exports = [
         id: 'corridor',
         name: 'Corridor',
         items: [
-          // [
-          //   'corridor-buzzer',
-          //   'corridor-door',
-          // ],
+          [
+            'corridor-buzzer',
+            'corridor-door',
+          ],
           [
             'corridor-light',
           ],

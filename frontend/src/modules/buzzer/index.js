@@ -22,7 +22,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 const styles = theme => ({
   paper: {
     ...theme.mixins.gutters(),
-    padding: `14px ${theme.spacing.unit * 2}px 18px`,
+    padding: `14px ${theme.spacing(2)}px 18px`,
     transition: 0.5,
     background: 'linear-gradient(45deg, #66B6F8, #5983E8)',
     color: '#fff',
@@ -35,7 +35,7 @@ const styles = theme => ({
     marginRight: '10px',
   },
   close: {
-    padding: theme.spacing.unit / 2,
+    padding: theme.spacing(0.5),
   },
   button: {
     color: '#fff',
@@ -67,13 +67,13 @@ class Buzzer extends Component {
   }
 
   componentDidMount() {
-    this.props.socket.subscribe(`buzzer/${this.state.id}/ringing`, this.onRinging);
-    this.props.socket.subscribe(`buzzer/${this.state.id}/unlocked`, this.onUnlocked);
+    this.props.core.subscribe(`buzzer/${this.state.id}/ringing`, this.onRinging);
+    this.props.core.subscribe(`buzzer/${this.state.id}/unlocked`, this.onUnlocked);
   }
 
   componentWillUnmount() {
-    this.props.socket.unsubscribe(`buzzer/${this.state.id}/ringing`, this.onRinging);
-    this.props.socket.unsubscribe(`buzzer/${this.state.id}/unlocked`, this.onUnlocked);
+    this.props.core.unsubscribe(`buzzer/${this.state.id}/ringing`, this.onRinging);
+    this.props.core.unsubscribe(`buzzer/${this.state.id}/unlocked`, this.onUnlocked);
   }
 
   onRinging = isRinging => {
@@ -113,7 +113,10 @@ class Buzzer extends Component {
   };
 
   handleUnlockClick = () => {
-    this.props.socket.sendJson(`buzzer/${this.state.id}/unlock`, true);
+    this.props.core.socket.publish(
+      `buzzer/${this.state.id}/unlock`,
+      JSON.stringify(true),
+    );
 
     this.setState({
       ringingMsgOpen: false,
@@ -125,21 +128,21 @@ class Buzzer extends Component {
       isLoadingHistory: true,
     });
 
-    window.user.fetch(`/buzzer/${this.state.id}/history`)
-      .then(({ history }) => {
-        this.setState({
-          isLoadingHistory: false,
-          openHistoryModal: true,
-          history,
-        });
-      })
-      .catch(e => {
-        this.setState({
-          isLoadingHistory: false,
-        });
-
-        throw e;
-      });
+    // window.user.fetch(`/buzzer/${this.state.id}/history`)
+    //   .then(({ history }) => {
+    //     this.setState({
+    //       isLoadingHistory: false,
+    //       openHistoryModal: true,
+    //       history,
+    //     });
+    //   })
+    //   .catch(e => {
+    //     this.setState({
+    //       isLoadingHistory: false,
+    //     });
+    //
+    //     throw e;
+    //   });
   };
 
   handleHistoryClose = () => this.setState({

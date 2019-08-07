@@ -20,7 +20,7 @@ const HistoryItem = ({ name, data }) => {
     text = 'Settings changed: ';
 
     if (oldMoisture) {
-      text += `${oldMoisture}% → ${newMoisture}%,   `;
+      text += `${oldMoisture}% → ${newMoisture}%    `;
     }
 
     if (oldDuration) {

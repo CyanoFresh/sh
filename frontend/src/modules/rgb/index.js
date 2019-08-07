@@ -4,7 +4,6 @@ import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/core';
 import RGBDialog from './Dialog';
 import { MODE } from './constants';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
 
 const styles = theme => ({
   button: {

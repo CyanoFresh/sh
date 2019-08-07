@@ -96,47 +96,55 @@ function HistoryContent({ id, core, name, suffix }) {
     );
   }
 
-  return <>
-    <FormControl className={classes.formControl}>
-      <InputLabel htmlFor="historyPeriod">Period</InputLabel>
-      <Select
-        value={period}
-        onChange={event => setPeriod(event.target.value)}
-        inputProps={{
-          name: 'historyPeriod',
-          id: 'historyPeriod',
-        }}
-      >
-        <MenuItem value="3_days">3 days</MenuItem>
-        <MenuItem value="24_hours">24 hours</MenuItem>
-        <MenuItem value="12_hours">12 hours</MenuItem>
-        <MenuItem value="6_hours">6 hours</MenuItem>
-        <MenuItem value="3_hours">3 hours</MenuItem>
-      </Select>
-    </FormControl>
+  return (
+    <React.Fragment>
+      <FormControl className={classes.formControl}>
+        <InputLabel htmlFor="historyPeriod">Period</InputLabel>
+        <Select
+          value={period}
+          onChange={event => setPeriod(event.target.value)}
+          inputProps={{
+            name: 'historyPeriod',
+            id: 'historyPeriod',
+          }}
+        >
+          <MenuItem value="3_days">3 days</MenuItem>
+          <MenuItem value="24_hours">24 hours</MenuItem>
+          <MenuItem value="12_hours">12 hours</MenuItem>
+          <MenuItem value="6_hours">6 hours</MenuItem>
+          <MenuItem value="3_hours">3 hours</MenuItem>
+        </Select>
+      </FormControl>
 
-    {history}
-  </>;
+      {history}
+    </React.Fragment>
+  );
 }
 
 const HistoryModal = ({ id, name, suffix, open, onClose, core }) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  return <Dialog open={open} fullScreen={fullScreen} fullWidth={true}
-                 maxWidth={'md'}
-                 onClose={onClose}
-                 aria-labelledby="variable-dialog-title">
-    <DialogTitle id="variable-dialog-title">History of {name}</DialogTitle>
-    <DialogContent>
-      <HistoryContent core={core} id={id} name={name} suffix={suffix}/>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose} color="primary">
-        Close
-      </Button>
-    </DialogActions>
-  </Dialog>;
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullScreen={fullScreen}
+      fullWidth
+      maxWidth={'md'}
+      aria-labelledby="variable-dialog-title"
+    >
+      <DialogTitle id="variable-dialog-title">History of {name}</DialogTitle>
+      <DialogContent>
+        <HistoryContent core={core} id={id} name={name} suffix={suffix}/>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary">
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 };
 
 export default HistoryModal;

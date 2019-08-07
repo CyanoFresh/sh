@@ -41,6 +41,12 @@ const MQTTLoader = (core) => {
     if (client) {
       console.log(packet.topic, packet.payload.toString(), client.id);
     }
+
+    const [module, ...params] = packet.topic.split('/');
+
+    if (core.modules.hasOwnProperty(module) && typeof core.modules[module].onMessage === 'function') {
+      core.modules[module].onMessage.call(core.modules[module], params, packet.payload.toString(), client);
+    }
   });
 
   core.aedes.on('client', client => {
