@@ -3,7 +3,7 @@ import {
   Route,
   Switch,
 } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import core from '../core';
 import Dashboard from './Dashboard';
 import NoMatch from './NoMatch';
@@ -23,23 +23,35 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Divider from '@material-ui/core/Divider';
 import LogoutIcon from '@material-ui/icons/ExitToApp';
 import DashboardList from './DrawerDashboardList';
+import Hidden from '@material-ui/core/Hidden';
 
 const drawerWidth = 240;
 
 const useStyles = makeStyles(theme => ({
   root: {
-    flexGrow: 1,
+    // flexGrow: 1,
     display: 'flex',
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
+    // marginLeft: drawerWidth,
+    // [theme.breakpoints.up('sm')]: {
+    //   width: `calc(100% - ${drawerWidth}px)`,
+    // },
   },
   menuButton: {
     marginRight: theme.spacing(2),
+    [theme.breakpoints.up('sm')]: {
+      display: 'none',
+    },
   },
   drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
+    // width: drawerWidth,
+    // flexShrink: 0,
+    [theme.breakpoints.up('sm')]: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
   },
   drawerPaper: {
     width: drawerWidth,
@@ -51,8 +63,8 @@ const useStyles = makeStyles(theme => ({
   },
   content: {
     flexGrow: 1,
-    height: '100vh',
-    overflow: 'auto',
+    // height: '100vh',
+    // overflow: 'auto',
     padding: theme.spacing(3),
   },
   toolbar: theme.mixins.toolbar,
@@ -60,13 +72,15 @@ const useStyles = makeStyles(theme => ({
 
 const PrivateApp = ({ history }) => {
   const classes = useStyles();
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
   const open = Boolean(anchorEl);
 
   const logOut = async () => {
     await Promise.all([
-      await core.auth.signOut(),
-      await core.disconnect(),
+      core.auth.signOut(),
+      core.disconnect(),
     ]);
 
     history.push('/');
@@ -94,11 +108,34 @@ const PrivateApp = ({ history }) => {
     setAnchorEl(null);
   }
 
+  function handleDrawerToggle() {
+    setMobileOpen(!mobileOpen);
+  }
+
+  const drawer = (
+    <React.Fragment>
+      <DashboardList/>
+      <Divider/>
+      <List>
+        <ListItem button onClick={logOut}>
+          <ListItemIcon><LogoutIcon/></ListItemIcon>
+          <ListItemText primary="Logout"/>
+        </ListItem>
+      </List>
+    </React.Fragment>
+  );
+
   return (
     <div className={classes.root}>
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar>
-          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+          <IconButton
+            edge="start"
+            className={classes.menuButton}
+            onClick={handleDrawerToggle}
+            color="inherit"
+            aria-label="open drawer"
+          >
             <MenuIcon/>
           </IconButton>
           <Typography variant="h6" className={classes.title}>
@@ -134,29 +171,44 @@ const PrivateApp = ({ history }) => {
                 },
               }}
             >
-              <MenuItem disabled>Hi, {core.auth.userData.name}!</MenuItem>
+              <MenuItem disabled divider>Logged in as {core.auth.userData.name}</MenuItem>
               <MenuItem onClick={logOut}>Log Out</MenuItem>
             </Menu>
           </div>
         </Toolbar>
       </AppBar>
-      <Drawer
-        className={classes.drawer}
-        variant="permanent"
-        classes={{
-          paper: classes.drawerPaper,
-        }}
-      >
-        <div className={classes.toolbar}/>
-        <DashboardList/>
-        <Divider/>
-        <List>
-          <ListItem button onClick={logOut}>
-            <ListItemIcon><LogoutIcon/></ListItemIcon>
-            <ListItemText primary="Logout"/>
-          </ListItem>
-        </List>
-      </Drawer>
+      <nav className={classes.drawer} aria-label="mailbox folders">
+        {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
+        <Hidden smUp implementation="css">
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            anchor={theme.direction === 'rtl' ? 'right' : 'left'}
+            onClose={handleDrawerToggle}
+            classes={{
+              paper: classes.drawerPaper,
+            }}
+            ModalProps={{
+              keepMounted: true, // Better open performance on mobile.
+            }}
+          >
+            {drawer}
+          </Drawer>
+        </Hidden>
+        <Hidden xsDown implementation="css">
+          <Drawer
+            classes={{
+              paper: classes.drawerPaper,
+            }}
+            variant="permanent"
+            open
+          >
+            <div className={classes.toolbar}/>
+            {drawer}
+          </Drawer>
+        </Hidden>
+      </nav>
+
       <main className={classes.content}>
         <div className={classes.toolbar}/>
 

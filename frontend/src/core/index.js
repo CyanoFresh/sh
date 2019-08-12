@@ -97,7 +97,7 @@ class WebCore extends EventEmitter {
    * @returns {Promise<boolean>}
    */
   disconnect(force = false) {
-    return new Promise(res => this.socket.end(force, res));
+    return new Promise(resolve => this.socket.end(force, resolve));
   }
 
   /**

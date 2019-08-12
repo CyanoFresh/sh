@@ -48,7 +48,7 @@ export default () => {
   }
 
   return <List>
-    {dashboards.map((dashboard, index) => (
+    {dashboards.map((dashboard) => (
       <ListItem button key={dashboard.id} component={Link} to={`/${dashboard.id}`}>
         <ListItemIcon><Dashboard/></ListItemIcon>
         <ListItemText primary={dashboard.name}/>

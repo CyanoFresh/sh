@@ -115,17 +115,17 @@ export default ({ core, ...props }) => {
   useEffect(() => {
     const onUpdate = (data) => {
       if (data.minMoisture) {
-        setInputs({
+        setInputs(inputs => ({
           ...inputs,
           minMoisture: data.minMoisture,
-        });
+        }));
       }
 
       if (data.duration) {
-        setInputs({
+        setInputs(inputs => ({
           ...inputs,
           duration: data.duration,
-        });
+        }));
       }
     };
 
