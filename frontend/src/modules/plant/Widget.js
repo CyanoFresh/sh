@@ -28,8 +28,6 @@ function Widget({ core, id, name, onClick, ...props }) {
   const [moisture, setMoisture] = useState(props.moisture);
 
   useEffect(() => {
-    console.log('Plant Widget effect');
-
     const onUpdate = (data) => {
       if (data.moisture) {
         setMoisture(data.moisture);

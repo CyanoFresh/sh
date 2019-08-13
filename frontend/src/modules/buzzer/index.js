@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
-import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
-import { CircularProgress, withStyles } from '@material-ui/core';
-import Paper from '@material-ui/core/Paper';
-import clsx from 'clsx';
+import { withStyles } from '@material-ui/core';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -18,6 +15,7 @@ import Avatar from '@material-ui/core/Avatar';
 import CallIcon from '@material-ui/icons/PhoneInTalk';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
 import ListItemText from '@material-ui/core/ListItemText';
+import Widget from './Widget';
 
 const styles = theme => ({
   paper: {
@@ -56,13 +54,14 @@ class Buzzer extends Component {
 
     this.state = {
       id: props.id,
-      name: props.name,
-      isRinging: props.isRinging,
-      history: [],
-      isLoadingHistory: false,
+      name: props.name,  // widget modal
+      isRinging: props.isRinging,  // widget
+      isAutoUnlock: props.isAutoUnlock,  // widget
+      history: [],  // modal
+      isLoadingHistory: false,  // modal
       openHistoryModal: false,
-      unlockedMsgOpen: false,
-      ringingMsgOpen: props.isRinging,
+      unlockedMsgOpen: false,  // messages
+      ringingMsgOpen: props.isRinging,  // messages
     };
   }
 
@@ -164,47 +163,19 @@ class Buzzer extends Component {
   };
 
   render() {
-    const { name, isRinging, openHistoryModal, unlockedMsgOpen, ringingMsgOpen, history, isLoadingHistory } = this.state;
+    const { name, openHistoryModal, unlockedMsgOpen, ringingMsgOpen, history } = this.state;
     const { classes, fullScreen } = this.props;
-
-    const paperClassname = clsx(classes.paper, isRinging && classes.isRinging);
 
     return (
       <React.Fragment>
-        <Grid item lg={4} md={6} sm={6} xs={12}>
-          <Paper className={paperClassname} elevation={1}>
-            <div className={classes.title}>
-              {name}
-            </div>
+        <Widget {...this.props} onClick={() => this.setState({ openHistoryModal: true })}/>
 
-            <Grid container spacing={8}>
-              <Grid item xs>
-                <Button color="default"
-                        variant="outlined"
-                        fullWidth={true}
-                        className={classes.button}
-                        onClick={this.handleUnlockClick}>
-                  Unlock
-                </Button>
-              </Grid>
-
-              <Grid item xs>
-                <Button color="default"
-                        variant="outlined"
-                        fullWidth={true}
-                        className={classes.button}
-                        onClick={this.handleHistoryClick}>
-                  {isLoadingHistory && <CircularProgress size={19} thickness={5} className={classes.loading}/>} History
-                </Button>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
-
-        <Dialog open={openHistoryModal} onClose={this.handleHistoryClose}
+        <Dialog open={openHistoryModal}
+                onClose={this.handleHistoryClose}
                 fullWidth
                 fullScreen={fullScreen}
-                aria-labelledby="history-title">
+                aria-labelledby="history-title"
+        >
           <DialogTitle id="history-title">{name}</DialogTitle>
           <DialogContent>
             {history.length

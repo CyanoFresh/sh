@@ -25,8 +25,6 @@ const Dashboard = (props) => {
   const classes = useStyles();
 
   useEffect(() => {
-    console.log('Dashboard effect');
-
     const onConnect = async () => {
       console.log('Dashboard socket connect');
 

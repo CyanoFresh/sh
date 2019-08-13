@@ -75,7 +75,7 @@ class WebCore extends EventEmitter {
       this.socket.on('disconnect', () => this.emit('disconnect'));
       this.socket.on('close', () => this.emit('disconnect'));
 
-      this.socket.on('message',(topic, message) => {
+      this.socket.on('message', (topic, message) => {
         try {
           const data = JSON.parse(message.toString());
 
@@ -118,6 +118,16 @@ class WebCore extends EventEmitter {
     this.socket.unsubscribe(topic);
 
     this.removeListener(`topic-${topic}`, callback);
+  }
+
+  /**
+   * @param {string} topic
+   * @param data
+   * @param [opts]
+   * @param [callback]
+   */
+  publishJson(topic, data = '', opts, callback) {
+    this.socket.publish(topic, JSON.stringify(data), opts, callback);
   }
 
   /**

@@ -27,11 +27,7 @@ class Switch {
   }
 
   onUpdate(itemId, data) {
-    this.updateState(itemId, data);
-  }
-
-  updateState(itemId, newState) {
-    this.states[itemId] = newState;
+    this.states[itemId] = Boolean(data);
   }
 
   initData() {

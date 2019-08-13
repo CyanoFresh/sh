@@ -40,9 +40,7 @@ class Rgb extends Component {
 
   onUpdate = (data) => this.setState(data);
 
-  update = (newState) => {
-    this.props.core.socket.publish(`rgb/${this.state.id}/set`, JSON.stringify(newState));
-  };
+  update = newState => this.props.core.publishJson(`rgb/${this.state.id}/set`, newState);
 
   handleButtonClick = () => this.setState({ open: true });
 

@@ -27,12 +27,13 @@ class Switch extends Component {
   }
 
   componentWillUnmount() {
+    console.log(this.props);
     this.props.core.unsubscribe(`switch/${this.state.id}`, this.onUpdate);
   }
 
   onUpdate = state => this.setState({ state });
 
-  handleClick = () => this.props.core.socket.publish(`switch/${this.state.id}/toggle`, JSON.stringify(''));
+  handleClick = () => this.props.core.publishJson(`switch/${this.state.id}/toggle`);
 
   render() {
     const { state, name } = this.state;

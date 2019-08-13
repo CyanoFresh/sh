@@ -39,9 +39,7 @@ class Variable {
     });
 
     this.core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
-      const item = this.config.items.find(item => {
-        return item.id === req.params.itemId;
-      });
+      const item = this.config.items.find(item => item.id === req.params.itemId);
 
       if (!item) {
         const err = new Error('Item was not found');
