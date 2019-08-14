@@ -1,6 +1,6 @@
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { makeStyles } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 import clsx from 'clsx';
@@ -51,7 +51,7 @@ function Widget({ core, id, name, onClick, ...props }) {
   const [isAutoUnlock, setIsAutoUnlock] = useState(props.isAutoUnlock);
   const [isRinging, setIsRinging] = useState(props.isRinging);
 
-  useEffect(() => {
+  useMemo(() => {
     const onRinging = (data) => {
       setIsRinging(data);
     };
@@ -73,53 +73,47 @@ function Widget({ core, id, name, onClick, ...props }) {
       core.unsubscribe(`buzzer/${id}/unlocked`, onUnlocked);
       core.unsubscribe(`buzzer/${id}/auto_unlock`, onAutoUnlockUpdate);
     };
-  }, [id]);
+  }, [id, core]);
 
   const handleAutoUnlockChange = e => core.publishJson(`buzzer/${id}/auto_unlock/set`, e.target.checked);
 
-  const handleUnlockClick = unlock => (e) => {
-    e.stopPropagation();
-
-    core.publishJson(`buzzer/${id}/unlock`, unlock);
-  };
+  const handleUnlockClick = unlock => () => core.publishJson(`buzzer/${id}/unlock`, unlock);
 
   let controls;
 
   if (isRinging) {
     controls = (
-      <Grid item xs={6}>
-        <div className={classes.actions}>
-          <Button variant="contained" color="primary" className={classes.unlockBtn} onClick={handleUnlockClick(true)}>
-            <LockOpen/>
-          </Button>
-          <Button variant="contained" color="secondary" className={classes.hangUpBtn}
-                  onClick={handleUnlockClick(false)}>
-            <CallEnd/>
-          </Button>
-        </div>
+      <Grid item xs={6} className={classes.actions} onClick={e => e.stopPropagation()}>
+        <Button variant="contained" color="primary" className={classes.unlockBtn}
+                onClick={handleUnlockClick(true)}>
+          <LockOpen/>
+        </Button>
+        <Button variant="contained" color="secondary" className={classes.hangUpBtn}
+                onClick={handleUnlockClick(false)}>
+          <CallEnd/>
+        </Button>
       </Grid>
     );
   } else {
     controls = (
-      <div onClick={e => e.stopPropagation()}>
       <FormControlLabel
         control={
-          <Switch checked={isAutoUnlock} onChange={handleAutoUnlockChange} value="checkedA"/>
+          <Switch
+            checked={isAutoUnlock}
+            onChange={handleAutoUnlockChange}
+            size="small"/>
         }
+        onClick={e => e.stopPropagation()}
         label="Auto"
       />
-    </div>
     );
   }
 
   return (
     <Grid item sm={6} xs={12}>
-      <Paper
-        className={clsx(classes.paper, {
-          [classes.isRinging]: isRinging,
-        })}
-        onClick={onClick}
-      >
+      <Paper className={clsx(classes.paper, {
+        [classes.isRinging]: isRinging,
+      })} onClick={onClick}>
         <Grid container alignContent="space-between">
           <Grid item className={classes.name}>
             {name}
