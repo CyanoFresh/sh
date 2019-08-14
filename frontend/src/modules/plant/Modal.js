@@ -26,8 +26,6 @@ const History = ({ core, id, ...props }) => {
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    console.log('Plant Dialog ()');
-
     const loadHistory = async () => {
       setIsLoading(true);
 

@@ -4,6 +4,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import ListItem from '@material-ui/core/ListItem';
 import Avatar from '@material-ui/core/Avatar';
 import ListItemText from '@material-ui/core/ListItemText';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import { HISTORY_TYPES } from './constants';
 
 const HistoryItem = ({ name, data }) => {
@@ -32,9 +33,11 @@ const HistoryItem = ({ name, data }) => {
 
   return (
     <ListItem>
-      <Avatar>
-        {icon}
-      </Avatar>
+      <ListItemAvatar>
+        <Avatar>
+          {icon}
+        </Avatar>
+      </ListItemAvatar>
 
       <ListItemText primary={text} secondary={new Date(date * 1000).toLocaleString()}/>
     </ListItem>
