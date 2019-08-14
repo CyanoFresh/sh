@@ -1,12 +1,6 @@
 import React, { useEffect } from 'react';
-import {
-  Route,
-  Switch,
-} from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
-import core from '../core';
-import Dashboard from './Dashboard';
-import NoMatch from './NoMatch';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
@@ -16,28 +10,21 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Divider from '@material-ui/core/Divider';
-import LogoutIcon from '@material-ui/icons/ExitToApp';
-import DashboardList from './DrawerDashboardList';
 import Hidden from '@material-ui/core/Hidden';
+import core from '../../core';
+import Dashboard from './Dashboard';
+import NoMatch from '../NoMatch';
+import Users from './Users';
+import DrawerContent from './DrawerContent';
 
 const drawerWidth = 240;
 
 const useStyles = makeStyles(theme => ({
   root: {
-    // flexGrow: 1,
     display: 'flex',
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    // marginLeft: drawerWidth,
-    // [theme.breakpoints.up('sm')]: {
-    //   width: `calc(100% - ${drawerWidth}px)`,
-    // },
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -46,8 +33,6 @@ const useStyles = makeStyles(theme => ({
     },
   },
   drawer: {
-    // width: drawerWidth,
-    // flexShrink: 0,
     [theme.breakpoints.up('sm')]: {
       width: drawerWidth,
       flexShrink: 0,
@@ -63,8 +48,6 @@ const useStyles = makeStyles(theme => ({
   },
   content: {
     flexGrow: 1,
-    // height: '100vh',
-    // overflow: 'auto',
     padding: theme.spacing(3),
   },
   toolbar: theme.mixins.toolbar,
@@ -111,19 +94,6 @@ const PrivateApp = ({ history }) => {
   function handleDrawerToggle() {
     setMobileOpen(!mobileOpen);
   }
-
-  const drawer = (
-    <React.Fragment>
-      <DashboardList/>
-      <Divider/>
-      <List>
-        <ListItem button onClick={logOut}>
-          <ListItemIcon><LogoutIcon/></ListItemIcon>
-          <ListItemText primary="Logout"/>
-        </ListItem>
-      </List>
-    </React.Fragment>
-  );
 
   return (
     <div className={classes.root}>
@@ -178,7 +148,6 @@ const PrivateApp = ({ history }) => {
         </Toolbar>
       </AppBar>
       <nav className={classes.drawer} aria-label="mailbox folders">
-        {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
         <Hidden smUp implementation="css">
           <Drawer
             variant="temporary"
@@ -192,7 +161,7 @@ const PrivateApp = ({ history }) => {
               keepMounted: true, // Better open performance on mobile.
             }}
           >
-            {drawer}
+            <DrawerContent onLogout={logOut}/>
           </Drawer>
         </Hidden>
         <Hidden xsDown implementation="css">
@@ -204,7 +173,7 @@ const PrivateApp = ({ history }) => {
             open
           >
             <div className={classes.toolbar}/>
-            {drawer}
+            <DrawerContent onLogout={logOut}/>
           </Drawer>
         </Hidden>
       </nav>
@@ -213,6 +182,7 @@ const PrivateApp = ({ history }) => {
         <div className={classes.toolbar}/>
 
         <Switch>
+          <Route path="/users" exact component={Users}/>
           <Route path="/:dashboard?" exact component={Dashboard}/>
           <Route component={NoMatch}/>
         </Switch>

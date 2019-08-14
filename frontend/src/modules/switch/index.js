@@ -27,7 +27,6 @@ class Switch extends Component {
   }
 
   componentWillUnmount() {
-    console.log(this.props);
     this.props.core.unsubscribe(`switch/${this.state.id}`, this.onUpdate);
   }
 

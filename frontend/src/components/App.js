@@ -4,10 +4,10 @@ import {
   Route,
   Switch,
 } from 'react-router-dom';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import PrivateRoute from './PrivateRoute';
 import SignIn from './SignIn';
 import PrivateApp from './PrivateApp';
-import CssBaseline from '@material-ui/core/CssBaseline';
 import NoMatch from './NoMatch';
 
 function App() {

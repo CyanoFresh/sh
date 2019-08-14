@@ -22,8 +22,6 @@ export default ({ id, name, core, isRinging }) => {
   });
 
   useEffect(() => {
-    console.log('Noti effetct');
-
     const onUnlocked = (data) => {
       const label = HISTORY_TYPES_LABELS[data ? HISTORY_TYPES.AUTO_UNLOCKED : HISTORY_TYPES.UNLOCKED];
 
@@ -63,8 +61,6 @@ export default ({ id, name, core, isRinging }) => {
     text: null,
   });
 
-  // const handleRingingClose = () => setIsRingingOpen(false);
-
   const handleUnlock = () => core.publishJson(`buzzer/${id}/unlock`, true);
 
   return (
@@ -97,7 +93,6 @@ export default ({ id, name, core, isRinging }) => {
           horizontal: 'right',
         }}
         open={isRingingOpen}
-        // onClose={handleRingingClose}
         message={<span id="message-id">{name} is ringing</span>}
         action={[
           <Button

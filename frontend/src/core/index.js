@@ -34,7 +34,7 @@ class WebCore extends EventEmitter {
   }
 
   /**
-   * Put an authentication token to the request if exists
+   * Make a request with an authentication token if exists
    *
    * @param {AxiosRequestConfig} data
    * @param {string?} token

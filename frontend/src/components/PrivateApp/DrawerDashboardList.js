@@ -4,7 +4,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List';
 import React, { useEffect, useState } from 'react';
 import { Dashboard } from '@material-ui/icons';
-import core from '../core';
+import core from '../../core';
 import { Link } from 'react-router-dom';
 
 export default () => {

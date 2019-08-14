@@ -118,6 +118,25 @@ const DBLoader = (core) => {
     });
   });
 
+  core.express.apiRouter.get('/users', async (req, res, next) => {
+    try {
+      const users = await core.auth.UserModel.findAll({
+        attributes: [
+          'id',
+          'user_id',
+          'name',
+        ],
+      });
+
+      return res.send({
+        ok: true,
+        users,
+      });
+    } catch (e) {
+      return next(e);
+    }
+  });
+
   core.express.use('/api', core.express.apiRouter);
 
   // Error handler

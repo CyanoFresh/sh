@@ -1,33 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import { makeStyles } from '@material-ui/core/styles';
-import core from '../core';
+import core from '../../../core';
 import Room from './Room';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: 'flex',
-    'justify-content': 'center',
-    'align-items': 'center',
-    paddingTop: '100px',
-  },
-  progress: {
-    margin: theme.spacing(2),
-  },
-}));
+import Loading from '../Loading';
 
 const Dashboard = (props) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rooms, setRooms] = useState([]);
-  const classes = useStyles();
 
   useEffect(() => {
     const onConnect = async () => {
-      console.log('Dashboard socket connect');
-
       setIsLoading(true);
 
       const dashboardId = props.match.params.dashboard || 'main';
@@ -56,7 +40,7 @@ const Dashboard = (props) => {
         setRooms(res.data.items);
       } catch (e) {
         setIsLoading(false);
-        setError(e);
+        setError(e.message);
       }
     };
 
@@ -69,18 +53,18 @@ const Dashboard = (props) => {
     core.on('connect', onConnect);
     core.on('disconnect', onDisconnect);
 
+    if (core.socket && core.socket.connected) {
+      onConnect();
+    }
+
     return () => {
       core.off('connect', onConnect);
       core.off('disconnect', onDisconnect);
     };
-  });
+  }, [props.match.params.dashboard]);
 
   if (isLoading) {
-    return (
-      <div className={classes.root}>
-        <CircularProgress className={classes.progress} size={100} thickness={2.6}/>
-      </div>
-    );
+    return <Loading/>;
   } else if (error) {
     return (
       <Box bgcolor="error.main" color="background.paper" p={2}>
