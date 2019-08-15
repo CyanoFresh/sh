@@ -22,7 +22,6 @@ module.exports = sequelize => sequelize.define('user', {
     },
     {
       fields: ['api_key'],
-      unique: true,
     },
   ],
 });

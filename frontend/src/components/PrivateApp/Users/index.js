@@ -1,13 +1,20 @@
 import React from 'react';
-import PrivateRoute from '../../PrivateRoute';
+import { Route, Switch } from 'react-router-dom';
 import Users from './Users';
 import User from './User';
+import Grid from '@material-ui/core/Grid';
+import CreateUser from './CreateUser';
 
 export default ({ match }) => {
   return (
     <React.Fragment>
-      <PrivateRoute path={`${match.path}/:userId`} component={User} />
-      <PrivateRoute path={match.path} exact component={Users} />
+      <Grid container spacing={4}>
+        <Route path={match.path} exact component={Users}/>
+        <Switch>
+          <Route path={`${match.path}/create`} component={CreateUser}/>
+          <Route path={`${match.path}/:userId`} component={User}/>
+        </Switch>
+      </Grid>
     </React.Fragment>
   );
 };

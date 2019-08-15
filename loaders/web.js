@@ -100,7 +100,7 @@ const DBLoader = (core) => {
     });
   });
 
-  core.express.apiRouter.get('/dashboards', (req, res, next) => {
+  core.express.apiRouter.get('/dashboards', (req, res) => {
     const dashboards = [];
 
     core.config.dashboards.forEach(dashboard => {
@@ -131,6 +131,78 @@ const DBLoader = (core) => {
       return res.send({
         ok: true,
         users,
+      });
+    } catch (e) {
+      return next(e);
+    }
+  });
+
+  core.express.apiRouter.post('/users', async (req, res, next) => {
+    if (!req.body.user_id || !req.body.name || !req.body.password) {
+      const e = new Error('Wrong parameters');
+      e.status = 400;
+      return next(e);
+    }
+
+    try {
+      const user = await core.auth.createUser({
+        user_id: req.body.user_id,
+        name: req.body.name,
+        password: req.body.password,
+        api_key: req.body.api_key,
+        room_id: req.body.room_id,
+      });
+
+      return res.send({
+        ok: true,
+        user,
+      });
+    } catch (e) {
+      return next(e);
+    }
+  });
+
+  core.express.apiRouter.get('/users/:userId', async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+
+      const user = await core.auth.UserModel.findByPk(userId, {
+        attributes: [
+          'id',
+          'user_id',
+          'api_key',
+          'name',
+          'room_id',
+          'last_login_at',
+        ],
+      });
+
+      return res.send({
+        ok: true,
+        user,
+      });
+    } catch (e) {
+      return next(e);
+    }
+  });
+
+  core.express.apiRouter.put('/users/:userId', async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      const data = await core.auth.dataPasswordHash(req.body);
+
+      delete data.user_id;
+      delete data.last_login_at;
+
+      const user = await core.auth.UserModel.update(data, {
+        where: {
+          id: userId,
+        },
+      });
+
+      return res.send({
+        ok: true,
+        user,
       });
     } catch (e) {
       return next(e);

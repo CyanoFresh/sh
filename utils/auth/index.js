@@ -203,19 +203,28 @@ class Auth {
   }
 
   /**
+   * Hash password and remove it form object
+   * @param data Request data
+   * @returns {Promise<Object>}
+   */
+  async dataPasswordHash(data) {
+    const { password, ...restData } = data;
+
+    const hash = await argon2.hash(password);
+
+    return {
+      ...restData,
+      password_hash: hash,
+    };
+  }
+
+  /**
    * @param {Object} data
-   * @returns {Promise<Model<any, any> | void>}
    */
   async createUser(data) {
-    const hash = await argon2.hash(data.password);
+    const values = await this.dataPasswordHash(data);
 
-    const modelData = { ...data };
-    delete modelData.password;
-
-    return await this.UserModel.create({
-      ...modelData,
-      password_hash: hash,
-    });
+    return this.UserModel.create(values);
   }
 }
 

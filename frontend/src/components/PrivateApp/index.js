@@ -182,7 +182,7 @@ const PrivateApp = ({ history }) => {
         <div className={classes.toolbar}/>
 
         <Switch>
-          <Route path="/users" exact component={Users}/>
+          <Route path="/users" component={Users}/>
           <Route path="/:dashboard?" exact component={Dashboard}/>
           <Route component={NoMatch}/>
         </Switch>
