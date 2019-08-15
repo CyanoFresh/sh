@@ -7,6 +7,7 @@ import Grid from '@material-ui/core/Grid';
 import core from '../../../core';
 import Button from '@material-ui/core/Button';
 import { Redirect } from 'react-router-dom';
+import FormControl from '@material-ui/core/FormControl';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -14,7 +15,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default ({match}) => {
+export default ({ match }) => {
   const classes = useStyles();
   const [values, setValues] = useState({
     user_id: '',
@@ -47,7 +48,7 @@ export default ({match}) => {
   };
 
   if (isSuccess) {
-    return <Redirect to="/users"/>
+    return <Redirect to="/users"/>;
   }
 
   return (
@@ -109,7 +110,9 @@ export default ({match}) => {
             variant="filled"
             fullWidth
           />
-          <Button type="submit" color="primary" variant="contained">Save</Button>
+          <FormControl margin="normal">
+            <Button type="submit" color="primary" variant="contained">Create</Button>
+          </FormControl>
         </form>
       </Paper>
     </Grid>
