@@ -58,6 +58,7 @@ function Widget({ core, id, name, onClick, ...props }) {
 
     const onUnlocked = () => {
       setIsRinging(false);
+      setIsAutoUnlock(false);
     };
 
     const onAutoUnlockUpdate = (data) => {
