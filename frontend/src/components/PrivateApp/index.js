@@ -28,12 +28,12 @@ const useStyles = makeStyles(theme => ({
   },
   menuButton: {
     marginRight: theme.spacing(2),
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up('md')]: {
       display: 'none',
     },
   },
   drawer: {
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up('md')]: {
       width: drawerWidth,
       flexShrink: 0,
     },
@@ -49,6 +49,9 @@ const useStyles = makeStyles(theme => ({
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
+    [theme.breakpoints.only('xs')]: {
+      padding: theme.spacing(1),
+    },
   },
   toolbar: theme.mixins.toolbar,
 }));
@@ -148,7 +151,7 @@ const PrivateApp = ({ history }) => {
         </Toolbar>
       </AppBar>
       <nav className={classes.drawer} aria-label="mailbox folders">
-        <Hidden smUp implementation="css">
+        <Hidden mdUp implementation="css">
           <Drawer
             variant="temporary"
             open={mobileOpen}
@@ -164,7 +167,7 @@ const PrivateApp = ({ history }) => {
             <DrawerContent onLogout={logOut}/>
           </Drawer>
         </Hidden>
-        <Hidden xsDown implementation="css">
+        <Hidden smDown implementation="css">
           <Drawer
             classes={{
               paper: classes.drawerPaper,

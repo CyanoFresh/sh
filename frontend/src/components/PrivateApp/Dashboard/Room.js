@@ -38,7 +38,7 @@ const Room = ({name, items: itemGroups }) => {
   const classes = useStyles();
 
   return (
-    <Grid item lg={6}>
+    <Grid item lg={6} md={6} sm={12} xs={12}>
       <Paper className={classes.root} elevation={2}>
         <Typography variant="h5" component="h3" className={classes.title}>
           {name}
