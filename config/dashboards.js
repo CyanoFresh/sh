@@ -38,7 +38,7 @@ module.exports = [
         items: [
           [
             'corridor-buzzer',
-            'corridor-door',
+            'door',
           ],
           [
             'corridor-light',

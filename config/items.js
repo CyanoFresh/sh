@@ -76,7 +76,7 @@ module.exports = [
     name: 'Light',
   },
   {
-    id: 'corridor-door',
+    id: 'door',
     module: 'variable',
     name: 'Door',
   },
