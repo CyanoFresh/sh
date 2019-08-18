@@ -44,13 +44,17 @@ const MQTTLoader = (core) => {
       const [module, ...params] = packet.topic.split('/');
 
       if (core.modules.hasOwnProperty(module) && typeof core.modules[module].onMessage === 'function') {
-        core.modules[module].onMessage.call(
-          core.modules[module],
-          params,
-          packet.payload.toString(),
-          client,
-          packet,
-        );
+        try {
+          core.modules[module].onMessage.call(
+            core.modules[module],
+            params,
+            packet.payload.toString(),
+            client,
+            packet,
+          );
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
   });

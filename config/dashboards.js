@@ -16,6 +16,7 @@ module.exports = [
           [
             'room1-light',
             'room1-secondary_light',
+            'room1-fan',
             'room1-rgb',
           ],
         ],

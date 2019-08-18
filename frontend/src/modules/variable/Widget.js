@@ -1,7 +1,7 @@
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import clsx from 'clsx';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -54,16 +54,19 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const OUTDATED_VALUE_INTERVAL = 3600;
-
-const Widget = ({ color, lastUpdate, name, onClick, prefix, suffix, value }) => {
+const Widget = ({ core, id, name, onClick, prefix, suffix, color, ...props }) => {
   const classes = useStyles();
+  const [value, setValue] = useState(props.value);
 
-  const isOutdatedValue = lastUpdate && Date.now() / 1000 - lastUpdate > OUTDATED_VALUE_INTERVAL;  // if value was not updated for last hour
+  useEffect(() => {
+    core.subscribe(`variable/${id}`, setValue);
+
+    return () => core.unsubscribe(`variable/${id}`, setValue);
+  }, [id, core]);
 
   let colorVariant = color;
 
-  if (isOutdatedValue || !value) {
+  if (!value) {
     colorVariant = 'grey';
   }
 
