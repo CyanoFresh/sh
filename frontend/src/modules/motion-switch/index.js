@@ -43,8 +43,7 @@ class MotionSwitch extends Component {
   onMotionUpdate = motionEnabled => this.setState({ motionEnabled });
 
   handleClick = () => this.props.core.publishJson(`motion-switch/${this.state.id}/toggle`);
-  // handleMotionClick = () => this.props.core.publishJson(`motion-switch/${this.state.id}/motion/toggle`); // TODO
-  handleMotionClick = () => this.props.core.publishJson(`motion-switch/${this.state.id}/motion/set`, !this.state.motionEnabled);
+  handleMotionClick = () => this.props.core.publishJson(`motion-switch/${this.state.id}/motion/toggle`);
 
   render() {
     const { state, motionEnabled, name } = this.state;
