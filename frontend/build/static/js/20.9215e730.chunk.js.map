@@ -1,1 +1,0 @@
-{"version":3,"sources":["modules/rgb/constants.js"],"names":["__webpack_require__","r","__webpack_exports__","d","MODE","COLOR","RAINBOW"],"mappings":"2FAAAA,EAAAC,EAAAC,GAAAF,EAAAG,EAAAD,EAAA,yBAAAE,IAAO,IAAMA,EAAO,CAClBC,MAAO,EACPC,QAAS","file":"static/js/20.9215e730.chunk.js","sourcesContent":["export const MODE = {\r\n  COLOR: 0,\r\n  RAINBOW: 1,\r\n};"],"sourceRoot":""}
