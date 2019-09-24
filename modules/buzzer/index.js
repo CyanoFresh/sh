@@ -119,7 +119,13 @@ class Buzzer {
       this.core.aedes.publish({
         topic: `${this.id}/${item.id}/auto_unlock/set`,
         payload: JSON.stringify(true),
-      }, () => console.log(`[Buzzer] Enabling autoUnlock for "${item.id}"...`));
+      }, () => {
+        console.log(`[Buzzer] Enabling autoUnlock for "${item.id}"...`);
+
+        return res.json({
+          ok: true,
+        });
+      });
     });
   }
 
