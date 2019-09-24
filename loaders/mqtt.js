@@ -23,17 +23,25 @@ const MQTTLoader = (core) => {
         if (core.config.devices.find(device => device.id === client.id && device.password === password.toString())) {
           return callback(null, true);
         }
+
+        console.log(`Auth failed for Client ID ${client.id} with username: ${username}, password: ${password}`);
+
+        const error = new Error('Wrong credentials');
+        error.returnCode = 4;
+        return callback(error, null);
       } else {
-        if (core.auth.authenticate(password.toString())) {
-          return callback(null, true);
-        }
+        core.auth.authenticate(password.toString()).then(authenticated => {
+          if (authenticated) {
+            return callback(null, true);
+          }
+
+          console.log(`Auth failed for Client ID ${client.id} with username: ${username}, password: ${password}`);
+
+          const error = new Error('Wrong credentials');
+          error.returnCode = 4;
+          return callback(error, null);
+        });
       }
-
-      console.log(`Auth failed for Client ID ${client.id} with username: ${username}, password: ${password}`);
-
-      const error = new Error('Wrong credentials');
-      error.returnCode = 4;
-      return callback(error, null);
     },
   });
 

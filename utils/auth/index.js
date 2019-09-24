@@ -191,7 +191,7 @@ class Auth {
    * @param {string} token
    * @returns {boolean}
    */
-  authenticate(token) {
+  async authenticate(token) {
     for (const user_id in this.userTokens) {
       // noinspection JSUnfilteredForInLoop
       if (this.userTokens[user_id].includes(token)) {
@@ -199,7 +199,13 @@ class Auth {
       }
     }
 
-    return false;
+    const user = await this.UserModel.findOne({
+      where: {
+        api_key: token,
+      },
+    });
+
+    return !!user;
   }
 
   /**
