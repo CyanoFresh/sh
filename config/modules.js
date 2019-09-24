@@ -69,6 +69,14 @@ module.exports = [
         name: 'On buzzer unlocked',
         callback: instance => instance.core.on('buzzer.unlocked', () => instance.send(`Buzzer was unlocked`)),
       },
+      {
+        name: 'On buzzer auto unlock change',
+        callback: instance => instance.core.on(
+          'buzzer.auto_unlock',
+          (itemId, isAutoUnlock) =>
+            isAutoUnlock && instance.send(`Buzzer will be auto-unlocked for 5 minutes`)
+        ),
+      },
     ],
   },
 ];

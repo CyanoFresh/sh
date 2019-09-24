@@ -106,6 +106,21 @@ class Buzzer {
         }))
         .catch(next);
     });
+
+    this.core.express.apiRouter.post(`/${this.id}/:itemId/auto_unlock`, (req, res, next) => {
+      const item = this.config.items.find(item => item.id === req.params.itemId);
+
+      if (!item) {
+        const err = new Error('Item was not found');
+        err.status = 404;
+        return next(err);
+      }
+
+      this.core.aedes.publish({
+        topic: `${this.id}/${item.id}/auto_unlock/set`,
+        payload: JSON.stringify(true),
+      }, () => console.log(`[Buzzer] Enabling autoUnlock for "${item.id}"...`));
+    });
   }
 
   getItemData(itemId) {
@@ -152,6 +167,8 @@ class Buzzer {
       }
     } else if (action === 'auto_unlock') {
       this.states[itemId].isAutoUnlock = data;
+
+      this.core.emit('buzzer.auto_unlock', itemId, data);
     }
   }
 
