@@ -126,6 +126,8 @@ class Buzzer {
           ok: true,
         });
       });
+
+      this.onAutoUnlockSet(item.id, true);
     });
   }
 
@@ -160,21 +162,25 @@ class Buzzer {
       this.core.emit('buzzer.unlocked', itemId);
       this.core.emit('buzzer.ringing', itemId, false);
     } else if (action === 'auto_unlock' && secondAction === 'set') {
-      clearTimeout(this.timers[itemId]);
-
-      // Disable auto unlock by timeout
-      if (data === true) {
-        this.timers[itemId] = setTimeout(() => {
-          this.core.aedes.publish({
-            topic: `${this.id}/${itemId}/auto_unlock/set`,
-            payload: JSON.stringify(false),
-          }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}"...`));
-        }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
-      }
+      this.onAutoUnlockSet(itemId, data);
     } else if (action === 'auto_unlock') {
       this.states[itemId].isAutoUnlock = data;
 
       this.core.emit('buzzer.auto_unlock', itemId, data);
+    }
+  }
+
+  onAutoUnlockSet(itemId, newState) {
+    clearTimeout(this.timers[itemId]);
+
+    // Disable auto unlock by timeout
+    if (newState === true) {
+      this.timers[itemId] = setTimeout(() => {
+        this.core.aedes.publish({
+          topic: `${this.id}/${itemId}/auto_unlock/set`,
+          payload: JSON.stringify(false),
+        }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}"...`));
+      }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
     }
   }
 
