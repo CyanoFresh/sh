@@ -122,12 +122,8 @@ class Buzzer {
       }, () => {
         console.log(`[Buzzer] Enabling autoUnlock for "${item.id}"...`);
 
-        return res.json({
-          ok: true,
-        });
+        return res.json({ ok: true });
       });
-
-      this.onAutoUnlockSet(item.id, true);
     });
   }
 
@@ -162,25 +158,23 @@ class Buzzer {
       this.core.emit('buzzer.unlocked', itemId);
       this.core.emit('buzzer.ringing', itemId, false);
     } else if (action === 'auto_unlock' && secondAction === 'set') {
-      this.onAutoUnlockSet(itemId, data);
+      clearTimeout(this.timers[itemId]);
+
+      // Disable auto unlock by timeout
+      if (data === true) {
+        console.log(`[Buzzer] AutoUnlock is enabled for "${itemId}" for ${DEFAULT_AUTO_UNLOCK_TIMEOUT} ms`);
+
+        this.timers[itemId] = setTimeout(() => {
+          this.core.aedes.publish({
+            topic: `${this.id}/${itemId}/auto_unlock/set`,
+            payload: JSON.stringify(false),
+          }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}"...`));
+        }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
+      }
     } else if (action === 'auto_unlock') {
       this.states[itemId].isAutoUnlock = data;
 
       this.core.emit('buzzer.auto_unlock', itemId, data);
-    }
-  }
-
-  onAutoUnlockSet(itemId, newState) {
-    clearTimeout(this.timers[itemId]);
-
-    // Disable auto unlock by timeout
-    if (newState === true) {
-      this.timers[itemId] = setTimeout(() => {
-        this.core.aedes.publish({
-          topic: `${this.id}/${itemId}/auto_unlock/set`,
-          payload: JSON.stringify(false),
-        }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}"...`));
-      }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
     }
   }
 
