@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const Auth = require('../utils/auth');
-const Modules = require('../utils/modules');
+const Auth = require('../auth');
+const Modules = require('../modules');
 
 /**
  * @param {Core} core

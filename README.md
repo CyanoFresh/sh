@@ -1,6 +1,8 @@
 Solomaha Home [ALPHA]
 ====
 
+Smart Home hub & control panel written using JS, MQTT and React.
+
 ## Installation
 
 1. Clone repo && cd:
@@ -23,13 +25,16 @@ Solomaha Home [ALPHA]
         ```
         npm i
         ```
+      
 3. Copy (if dev) and configure env variables:
 
     ```sh
     cp .env.example .env
     ```
+      
+4. If needed configure & build the frontend (in `./frontend` folder)
 
-## Topic structure: (can be outdated)
+## Topic structure: (probably outdated)
 
 ### Web Panel
 

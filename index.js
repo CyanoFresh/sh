@@ -1,8 +1,8 @@
 const ws = require('websocket-stream');
 const EventEmitter = require('events');
-const DBLoader = require('./loaders/db');
-const MQTTLoader = require('./loaders/mqtt');
-const WebLoader = require('./loaders/web');
+const DBLoader = require('./components/loaders/db');
+const MQTTLoader = require('./components/loaders/mqtt');
+const WebLoader = require('./components/loaders/web');
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
