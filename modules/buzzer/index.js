@@ -139,42 +139,46 @@ class Buzzer {
   onMessage(params, payload) {
     const [itemId, action, secondAction] = params;
 
-    const data = JSON.parse(payload);
+    try {
+      const data = JSON.parse(payload);
 
-    if (action === 'ringing') {
-      this.states[itemId].isRinging = data;
+      if (action === 'ringing') {
+        this.states[itemId].isRinging = data;
 
-      if (data === true) {
-        this.addHistory(itemId, HISTORY_TYPES.RINGING);
+        if (data === true) {
+          this.addHistory(itemId, HISTORY_TYPES.RINGING);
+        }
+
+        this.core.emit('buzzer.ringing', itemId, data);
+      } else if (action === 'unlocked') {
+        this.states[itemId].isRinging = false;
+        this.states[itemId].isAutoUnlock = false;
+
+        this.addHistory(itemId, data ? HISTORY_TYPES.AUTO_UNLOCKED : HISTORY_TYPES.UNLOCKED);
+
+        this.core.emit('buzzer.unlocked', itemId);
+        this.core.emit('buzzer.ringing', itemId, false);
+      } else if (action === 'auto_unlock' && secondAction === 'set') {
+        clearTimeout(this.timers[itemId]);
+
+        // Disable auto unlock by timeout
+        if (data === true) {
+          console.log(`[Buzzer] AutoUnlock is enabled for "${itemId}" for ${DEFAULT_AUTO_UNLOCK_TIMEOUT} ms`);
+
+          this.timers[itemId] = setTimeout(() => {
+            this.core.aedes.publish({
+              topic: `${this.id}/${itemId}/auto_unlock/set`,
+              payload: JSON.stringify(false),
+            }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}"...`));
+          }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
+        }
+      } else if (action === 'auto_unlock') {
+        this.states[itemId].isAutoUnlock = data;
+
+        this.core.emit('buzzer.auto_unlock', itemId, data);
       }
+    } catch (e) {
 
-      this.core.emit('buzzer.ringing', itemId, data);
-    } else if (action === 'unlocked') {
-      this.states[itemId].isRinging = false;
-      this.states[itemId].isAutoUnlock = false;
-
-      this.addHistory(itemId, data ? HISTORY_TYPES.AUTO_UNLOCKED : HISTORY_TYPES.UNLOCKED);
-
-      this.core.emit('buzzer.unlocked', itemId);
-      this.core.emit('buzzer.ringing', itemId, false);
-    } else if (action === 'auto_unlock' && secondAction === 'set') {
-      clearTimeout(this.timers[itemId]);
-
-      // Disable auto unlock by timeout
-      if (data === true) {
-        console.log(`[Buzzer] AutoUnlock is enabled for "${itemId}" for ${DEFAULT_AUTO_UNLOCK_TIMEOUT} ms`);
-
-        this.timers[itemId] = setTimeout(() => {
-          this.core.aedes.publish({
-            topic: `${this.id}/${itemId}/auto_unlock/set`,
-            payload: JSON.stringify(false),
-          }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}"...`));
-        }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
-      }
-    } else if (action === 'auto_unlock') {
-      this.states[itemId].isAutoUnlock = data;
-
-      this.core.emit('buzzer.auto_unlock', itemId, data);
     }
   }
 
