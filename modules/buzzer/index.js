@@ -3,9 +3,9 @@ const moment = require('moment');
 
 const Op = Sequelize.Op;
 
-const HISTORY_CLEAR_INTERVAL = 3 * 3600000;  // every 3 hours
+const HISTORY_CLEAR_INTERVAL = 3 * 3600000;  // remove old history every 3 hours
 const MAX_HISTORY_DAYS = 7;
-const DEFAULT_AUTO_UNLOCK_TIMEOUT = 600000;  // 10 minutes
+const DEFAULT_AUTO_UNLOCK_TIMEOUT = 10 * 60000;  // 10 minutes
 
 const HISTORY_TYPES = {
   RINGING: 0,
@@ -137,48 +137,44 @@ class Buzzer {
   }
 
   onMessage(params, payload) {
-    const [itemId, action, secondAction] = params;
+    const [itemId, type, action] = params;
 
-    try {
-      const data = JSON.parse(payload);
+    const data = JSON.parse(payload);
 
-      if (action === 'ringing') {
-        this.states[itemId].isRinging = data;
+    if (type === 'ringing') {
+      this.states[itemId].isRinging = data;
 
-        if (data === true) {
-          this.addHistory(itemId, HISTORY_TYPES.RINGING);
-        }
-
-        this.core.emit('buzzer.ringing', itemId, data);
-      } else if (action === 'unlocked') {
-        this.states[itemId].isRinging = false;
-        this.states[itemId].isAutoUnlock = false;
-
-        this.addHistory(itemId, data ? HISTORY_TYPES.AUTO_UNLOCKED : HISTORY_TYPES.UNLOCKED);
-
-        this.core.emit('buzzer.unlocked', itemId);
-        this.core.emit('buzzer.ringing', itemId, false);
-      } else if (action === 'auto_unlock' && secondAction === 'set') {
-        clearTimeout(this.timers[itemId]);
-
-        // Disable auto unlock by timeout
-        if (data === true) {
-          console.log(`[Buzzer] AutoUnlock is enabled for "${itemId}" for ${DEFAULT_AUTO_UNLOCK_TIMEOUT} ms`);
-
-          this.timers[itemId] = setTimeout(() => {
-            this.core.aedes.publish({
-              topic: `${this.id}/${itemId}/auto_unlock/set`,
-              payload: JSON.stringify(false),
-            }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}"...`));
-          }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
-        }
-      } else if (action === 'auto_unlock') {
-        this.states[itemId].isAutoUnlock = data;
-
-        this.core.emit('buzzer.auto_unlock', itemId, data);
+      if (data === true) {
+        this.addHistory(itemId, HISTORY_TYPES.RINGING);
       }
-    } catch (e) {
 
+      this.core.emit('buzzer.ringing', itemId, data);
+    } else if (type === 'unlocked') {
+      this.states[itemId].isRinging = false;
+      this.states[itemId].isAutoUnlock = false;
+
+      this.addHistory(itemId, data ? HISTORY_TYPES.AUTO_UNLOCKED : HISTORY_TYPES.UNLOCKED);
+
+      this.core.emit('buzzer.unlocked', itemId);
+      this.core.emit('buzzer.ringing', itemId, false);
+    } else if (type === 'auto_unlock' && action === 'set') {
+      clearTimeout(this.timers[itemId]);
+
+      // Disable auto unlock by timeout
+      if (data === true) {
+        console.log(`[Buzzer] AutoUnlock is enabled for "${itemId}" for ${DEFAULT_AUTO_UNLOCK_TIMEOUT} ms`);
+
+        this.timers[itemId] = setTimeout(() => {
+          this.core.aedes.publish({
+            topic: `${this.id}/${itemId}/auto_unlock/set`,
+            payload: JSON.stringify(false),
+          }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}" by timeout...`));
+        }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
+      }
+    } else if (type === 'auto_unlock') {
+      this.states[itemId].isAutoUnlock = data;
+
+      this.core.emit('buzzer.auto_unlock', itemId, data);
     }
   }
 

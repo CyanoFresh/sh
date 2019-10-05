@@ -48,21 +48,21 @@ const MQTTLoader = (core) => {
   core.aedes.on('publish', (packet, client) => {
     if (client) {
       console.log(packet.topic, packet.payload.toString(), client.id);
+    }
 
-      const [module, ...params] = packet.topic.split('/');
+    const [module, ...params] = packet.topic.split('/');
 
-      if (core.modules.hasOwnProperty(module) && typeof core.modules[module].onMessage === 'function') {
-        try {
-          core.modules[module].onMessage.call(
-            core.modules[module],
-            params,
-            packet.payload.toString(),
-            client,
-            packet,
-          );
-        } catch (e) {
-          console.error(e);
-        }
+    if (core.modules[module] && typeof core.modules[module].onMessage === 'function') {
+      try {
+        core.modules[module].onMessage.call(
+          core.modules[module],
+          params,
+          packet.payload.toString(),
+          client,
+          packet,
+        );
+      } catch (e) {
+        console.error(`Error in ${module}.onMessage()`, e);
       }
     }
   });
