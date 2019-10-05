@@ -36,7 +36,7 @@ export default ({ id, name, core, isRinging }) => {
       let text = `Auto-unlock was disabled for ${name}`;
 
       if (data) {
-        text = `${name} will be auto-unlocked for 5 min`;
+        text = `${name} will be auto-unlocked for 10 min`;
       }
 
       setMsg({
