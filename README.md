@@ -1,5 +1,7 @@
-Solomaha Home [ALPHA]
+Solomaha Home 
 ====
+
+*Currently in ALPHA*
 
 Smart Home hub & control panel written using JS, MQTT and React.
 
