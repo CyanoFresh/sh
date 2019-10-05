@@ -15,7 +15,7 @@
     "express": "^4.17.1",
     "moment": "^2.24.0",
     "mysql2": "^1.7.0",
-    "sequelize": "^5.18.4",
+    "sequelize": "^5.19.3",
     "websocket-stream": "^5.5.0"
   },
   "devDependencies": {
