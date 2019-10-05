@@ -58,6 +58,7 @@ class Auth {
     if (count === 0 && !rootExists) {
       const rootModel = await this.createUser({
         user_id: 'root',
+        name: 'Root',
         password: 'root',
       });
 
@@ -136,17 +137,23 @@ class Auth {
     authRouter.post('/logout', async (req, res, next) => {
       const token = Auth.extractTokenFromRequest(req);
 
-      const tokenRemoved = await this.UserTokenModel.destroy({
+      const tokenModel = await this.UserTokenModel.findOne({
         where: { token },
       });
 
-      if (tokenRemoved) {
-        return res.send({ ok: true });
+      if (!tokenModel) {
+        const err = new Error('Token was not found');
+        err.status = 401;
+        return next(err);
       }
 
-      const err = new Error('Token was not found');
-      err.status = 401;
-      return next(err);
+      if (this.userTokens[tokenModel.user_id]) {
+        this.userTokens[tokenModel.user_id] = this.userTokens[tokenModel.user_id].filter(token => token !== tokenModel.token)
+      }
+
+      const tokenDestroyed = await tokenModel.destroy();
+
+      return res.send({ ok: tokenDestroyed });
     });
 
     return authRouter;

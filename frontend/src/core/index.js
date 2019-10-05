@@ -74,6 +74,10 @@ class WebCore extends EventEmitter {
       this.socket.on('offline', () => this.emit('disconnect'));
       this.socket.on('disconnect', () => this.emit('disconnect'));
       this.socket.on('close', () => this.emit('disconnect'));
+      this.socket.on('error', error => {
+        console.log(error);
+        this.emit('disconnect', error);
+      });
 
       this.socket.on('message', (topic, message) => {
         try {
