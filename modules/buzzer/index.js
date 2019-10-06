@@ -153,6 +153,8 @@ class Buzzer {
       this.states[itemId].isRinging = false;
       this.states[itemId].isAutoUnlock = false;
 
+      clearTimeout(this.timers[itemId]);
+
       this.addHistory(itemId, data ? HISTORY_TYPES.AUTO_UNLOCKED : HISTORY_TYPES.UNLOCKED);
 
       this.core.emit('buzzer.unlocked', itemId);
