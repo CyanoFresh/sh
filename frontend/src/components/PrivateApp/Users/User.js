@@ -55,6 +55,19 @@ export default ({ match }) => {
     [event.target.name]: event.target.value,
   });
 
+  const handleDelete = async () => {
+    try {
+      const { data } = await core.authenticatedRequest({
+        url: `/users/${userId}`,
+        method: 'DELETE',
+      });
+
+      setIsSuccess(data.ok);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleSubmit = async event => {
     event.preventDefault();
 
@@ -62,7 +75,6 @@ export default ({ match }) => {
       const { data } = await core.authenticatedRequest({
         url: `/users/${userId}`,
         method: 'PUT',
-        responseType: 'json',
         data: values,
       });
 
@@ -132,7 +144,7 @@ export default ({ match }) => {
           <TextField
             name="api_key"
             label="API Key"
-            value={values.api_key || ''}
+            value={values.api_key}
             onChange={handleChange}
             margin="normal"
             variant="filled"
@@ -141,7 +153,7 @@ export default ({ match }) => {
           <TextField
             name="room_id"
             label="Room ID"
-            value={values.room_id || ''}
+            value={values.room_id}
             onChange={handleChange}
             margin="normal"
             variant="filled"
@@ -159,6 +171,7 @@ export default ({ match }) => {
           />
           <FormControl margin="normal">
             <Button type="submit" color="primary" variant="contained">Save</Button>
+            <Button onClick={handleDelete} color="danger" variant="contained">Delete</Button>
           </FormControl>
         </form>
       </Paper>

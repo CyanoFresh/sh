@@ -209,6 +209,30 @@ const DBLoader = (core) => {
     }
   });
 
+  core.express.apiRouter.delete('/users/:userId', async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+
+      await core.auth.UserModel.destroy({
+        where: {
+          id: userId,
+        },
+      });
+
+      await core.auth.UserTokenModel.destroy({
+        where: {
+          user_id: userId,
+        },
+      });
+
+      return res.send({
+        ok: true,
+      });
+    } catch (e) {
+      return next(e);
+    }
+  });
+
   core.express.use('/api', core.express.apiRouter);
 
   // Error handler
