@@ -11,6 +11,7 @@ const DBLoader = (core) => {
   core.express = express();
 
   core.express.use(cors());
+  core.express.disable('x-powered-by');
   core.express.use(express.json());
 
   core.auth = Auth(core);
