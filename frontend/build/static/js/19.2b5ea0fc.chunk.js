@@ -1,1 +1,0 @@
-(this["webpackJsonpsh-frontend"]=this["webpackJsonpsh-frontend"]||[]).push([[19],{184:function(n,t,r){"use strict";r.r(t),r.d(t,"HISTORY_TYPES",(function(){return e})),r.d(t,"WATERED_TIMEOUT_RATE",(function(){return s})),r.d(t,"MAX_HISTORY",(function(){return T}));var e={WATERED:"watered",SETTINGS_CHANGED:"settings"},s=2,T=7}}]);

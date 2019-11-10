@@ -1,1 +1,0 @@
-(this["webpackJsonpsh-frontend"]=this["webpackJsonpsh-frontend"]||[]).push([[20],{183:function(n,s,t){"use strict";t.r(s),t.d(s,"MODE",(function(){return r}));var r={COLOR:0,RAINBOW:1}}}]);
