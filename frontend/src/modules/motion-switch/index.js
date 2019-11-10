@@ -3,7 +3,7 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
-import MotionIcon from '@material-ui/icons/WifiTethering';
+import MotionIcon from '@material-ui/icons/DirectionsRun';
 import Tooltip from '@material-ui/core/Tooltip';
 
 const styles = theme => ({
