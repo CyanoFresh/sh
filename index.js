@@ -41,9 +41,15 @@ const httpServer = require('http').createServer();
 // Start servers
 require('net')
   .createServer(core.aedes.handle)
-  .listen(config.ports.MQTT, () => console.log(`MQTT server listening on port ${config.ports.MQTT}`));
+  .listen(config.ports.MQTT, () =>
+    console.log(`MQTT server listening on port ${config.ports.MQTT}`)
+  );
 
 ws.createServer({ server: httpServer }, core.aedes.handle);
-httpServer.listen(config.ports.MQTT_WS, () => console.log(`Websocket MQTT server listening on port ${config.ports.MQTT_WS}`));
+httpServer.listen(config.ports.MQTT_WS, () =>
+  console.log(`Websocket MQTT server listening on port ${config.ports.MQTT_WS}`)
+);
 
-core.express.listen(config.ports.HTTP, () => console.log(`HTTP server listening on port ${config.ports.HTTP}`));
+core.express.listen(config.ports.HTTP, () =>
+  console.log(`HTTP server listening on port ${config.ports.HTTP}`)
+);
