@@ -1,36 +1,87 @@
+const Sequelize = require('sequelize');
+const moment = require('moment');
+
+const Op = Sequelize.Op;
+
+const HISTORY_CLEAR_INTERVAL = 3 * 3600000;  // remove old history every 3 hours
+const MAX_HISTORY_DAYS = 7;
+const DEFAULT_AUTO_UNLOCK_TIMEOUT = 10 * 60000;  // 10 minutes
+
+const HISTORY_TYPES = {
+  RINGING: 0,
+  UNLOCKED: 1,
+  AUTO_UNLOCKED: 2,
+};
+
 class Buzzer {
   constructor(config, items, core) {
     this.id = 'buzzer';
     this.name = 'Buzzer';
     this.core = core;
     this.config = {
-      defaultState: { isRinging: false },
+      defaultState: {
+        isRinging: false,
+        isAutoUnlock: false,
+      },
       items,
-      maxHistorySize: 10,
       ...config,
     };
     this.states = {};
-    this.history = {};
+    this.timers = {};
 
+    this.initDb();
+    this.initWeb();
     this.initData();
+  }
 
-    core.aedes.on('publish', ({ topic, payload }) => {
-      const [module, itemId, action] = topic.split('/');
-
-      if (module === this.id) {
-        try {
-          const data = JSON.parse(payload.toString());
-
-          if (action) {
-            this.onAction(action, itemId, data);
-          }
-        } catch (e) {
-          return console.error(e);
-        }
-      }
+  initDb() {
+    this.History = this.core.sequelize.define('BuzzerHistory', {
+      item_id: {
+        type: Sequelize.STRING(200),
+        allowNull: false,
+      },
+      type: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      date: {
+        type: Sequelize.INTEGER.UNSIGNED,
+      },
+    }, {
+      timestamps: false,
+      indexes: [
+        {
+          fields: ['item_id'],
+        },
+        {
+          fields: ['date'],
+        },
+      ],
     });
 
-    core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
+    // Clear old history by interval
+    setInterval(() => this.History.destroy({
+      where: {
+        date: {
+          [Op.lt]: moment().subtract(MAX_HISTORY_DAYS, 'days').unix(),
+        },
+      },
+    }), HISTORY_CLEAR_INTERVAL);
+  }
+
+  initData() {
+    this.config.items.forEach((item, index) => {
+      this.states[item.id] = { ...this.config.defaultState };
+
+      this.config.items[index] = {
+        ...this.config.defaultConfig,
+        ...item,
+      };
+    });
+  }
+
+  initWeb() {
+    this.core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
       const item = this.config.items.find(item => item.id === req.params.itemId);
 
       if (!item) {
@@ -39,36 +90,40 @@ class Buzzer {
         return next(err);
       }
 
-      return res.json({
-        ok: true,
-        history: this.history[item.id] || [],
-      });
+      return this.History.findAll({
+        where: {
+          item_id: item.id,
+        },
+        order: [
+          ['date', 'ASC'],
+        ],
+        attributes: ['date', 'type'],
+      })
+        .then(history => res.json({
+          ok: true,
+          item,
+          history,
+        }))
+        .catch(next);
     });
-  }
 
-  onAction(type, itemId, data) {
-    if (type === 'ringing') {
-      this.states[itemId].isRinging = data;
+    this.core.express.apiRouter.post(`/${this.id}/:itemId/auto_unlock`, (req, res, next) => {
+      const item = this.config.items.find(item => item.id === req.params.itemId);
 
-      if (data === true) {
-        this.addHistory(itemId, 'ringing');
+      if (!item) {
+        const err = new Error('Item was not found');
+        err.status = 404;
+        return next(err);
       }
 
-      this.core.emit('buzzer.ringing', itemId, data);
-    } else if (type === 'unlocked') {
-      this.states[itemId].isRinging = false;
+      this.core.aedes.publish({
+        topic: `${this.id}/${item.id}/auto_unlock/set`,
+        payload: JSON.stringify(true),
+      }, () => {
+        console.log(`[Buzzer] Enabling autoUnlock for "${item.id}"...`);
 
-      this.addHistory(itemId, 'unlocked');
-
-      this.core.emit('buzzer.unlocked', itemId);
-      this.core.emit('buzzer.ringing', itemId, false);
-    }
-  }
-
-  initData() {
-    this.config.items.forEach(item => {
-      this.states[item.id] = this.config.defaultState;
-      this.history[item.id] = [];
+        return res.json({ ok: true });
+      });
     });
   }
 
@@ -81,15 +136,60 @@ class Buzzer {
     };
   }
 
-  addHistory(itemId, type) {
-    const date = new Date();
+  onMessage(params, payload) {
+    const [itemId, type, action] = params;
 
-    this.history[itemId].unshift({
-      date,
+    const data = JSON.parse(payload);
+
+    if (type === 'ringing') {
+      this.states[itemId].isRinging = data;
+
+      if (data === true) {
+        this.addHistory(itemId, HISTORY_TYPES.RINGING);
+      }
+
+      this.core.emit('buzzer.ringing', itemId, data);
+    } else if (type === 'unlocked') {
+      this.states[itemId].isRinging = false;
+      this.states[itemId].isAutoUnlock = false;
+
+      clearTimeout(this.timers[itemId]);
+
+      this.addHistory(itemId, data ? HISTORY_TYPES.AUTO_UNLOCKED : HISTORY_TYPES.UNLOCKED);
+
+      this.core.emit('buzzer.unlocked', itemId);
+      this.core.emit('buzzer.ringing', itemId, false);
+    } else if (type === 'auto_unlock' && action === 'set') {
+      clearTimeout(this.timers[itemId]);
+
+      // Disable auto unlock by timeout
+      if (data === true) {
+        console.log(`[Buzzer] AutoUnlock is enabled for "${itemId}" for ${DEFAULT_AUTO_UNLOCK_TIMEOUT} ms`);
+
+        this.timers[itemId] = setTimeout(() => {
+          this.core.aedes.publish({
+            topic: `${this.id}/${itemId}/auto_unlock/set`,
+            payload: JSON.stringify(false),
+          }, () => console.log(`[Buzzer] Disabling autoUnlock for "${itemId}" by timeout...`));
+        }, DEFAULT_AUTO_UNLOCK_TIMEOUT);
+      }
+    } else if (type === 'auto_unlock') {
+      this.states[itemId].isAutoUnlock = data;
+
+      this.core.emit('buzzer.auto_unlock', itemId, data);
+    }
+  }
+
+  /**
+   * @param {string} item_id
+   * @param {HISTORY_TYPES} type
+   */
+  addHistory(item_id, type) {
+    return this.History.create({
+      item_id,
       type,
+      date: moment().unix(),
     });
-
-    this.history[itemId] = this.history[itemId].slice(0, this.config.maxHistorySize);
   }
 }
 

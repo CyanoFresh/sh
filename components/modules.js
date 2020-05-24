@@ -4,16 +4,7 @@
  */
 function Modules(core) {
   function getModulesItems(moduleId) {
-    let items = [];
-
-    core.config.dashboard.forEach(room => room.items.forEach(itemGroup => {
-      items = [
-        ...items,
-        ...itemGroup.filter(item => item.module === moduleId),
-      ];
-    }));
-
-    return items;
+    return core.config.items.filter(item => item.module === moduleId);
   }
 
   const modules = {};

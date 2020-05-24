@@ -24,24 +24,8 @@ class Variable {
     };
     this.states = {};
 
-    this.core.aedes.on('publish', ({ topic, payload }) => {
-      const [module, itemId, action] = topic.split('/');
-
-      if (module === this.id) {
-        try {
-          const data = JSON.parse(payload.toString());
-
-          this.onUpdate(itemId, data);
-        } catch (e) {
-          return console.error(e);
-        }
-      }
-    });
-
     this.core.express.apiRouter.get(`/${this.id}/:itemId/history`, (req, res, next) => {
-      const item = this.config.items.find(item => {
-        return item.id === req.params.itemId;
-      });
+      const item = this.config.items.find(item => item.id === req.params.itemId);
 
       if (!item) {
         const err = new Error('Item was not found');
@@ -126,8 +110,15 @@ class Variable {
     }), HISTORY_CLEAR_INTERVAL);
   }
 
-  onUpdate(itemId, data) {
-    // Save to memory
+  onMessage(params, payload) {
+    const [itemId] = params;
+
+    if (!this.states.hasOwnProperty(itemId)) {
+      return console.error(`[Variable] Unknown item id: "${itemId}"`);
+    }
+
+    const data = JSON.parse(payload);
+
     this.states[itemId].value = data;
     this.states[itemId].lastUpdate = moment().unix();
 
@@ -154,6 +145,7 @@ class Variable {
         });
 
         if (lastVariableModel) {
+          this.states[item.id].value = lastVariableModel.value;
           this.states[item.id].lastUpdate = lastVariableModel.date;
         }
       } catch (e) {

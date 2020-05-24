@@ -38,36 +38,41 @@ module.exports = [
     listeners: [
       {
         name: 'On server start',
-        callback: instance =>
-          instance.core.on('core.init', () =>
-            instance.send('Server started'),
-          ),
+        callback: instance => instance.core.on('core.init', () => instance.send('Server started')),
       },
       {
         name: 'On device disconnect',
         callback: instance => setTimeout(
-          () =>
-            instance.core.on('device.disconnected',
-              deviceId =>
-                instance.send(`Device '${deviceId}' disconnected`),
-            ),
+          () => instance.core.on(
+            'device.disconnected',
+            deviceId => instance.send(`Device '${deviceId}' disconnected`),
+          ),
           5000,
         ),
       },
       {
         name: 'On device connect',
         callback: instance => setTimeout(
-          () =>
-            instance.core.on('device.connected',
-              deviceId =>
-                instance.send(`Device '${deviceId}' connected`),
-            ),
+          () => instance.core.on(
+            'device.connected',
+            deviceId => instance.send(`Device '${deviceId}' connected`),
+          ),
           5000,
         ),
       },
       {
         name: 'On buzzer unlocked',
-        callback: instance => instance.core.on('buzzer.unlocked', () => instance.send(`Buzzer was unlocked`)),
+        callback: instance => instance.core.on(
+          'buzzer.unlocked',
+          () => instance.send(`Buzzer was unlocked`),
+        ),
+      },
+      {
+        name: 'On buzzer auto unlock change',
+        callback: instance => instance.core.on(
+          'buzzer.auto_unlock',
+          (itemId, isAutoUnlock) => instance.send(`Buzzer auto-unlock: ${isAutoUnlock}`),
+        ),
       },
     ],
   },

@@ -13,28 +13,18 @@ class MotionSwitch {
     this.states = {};
 
     this.initData();
+  }
 
-    core.aedes.on('publish', ({ topic, payload }) => {
-      const [module, itemId, ...rest] = topic.split('/');
+  onMessage(params, payload) {
+    const [itemId, action] = params;
 
-      if (module === this.id) {
-        try {
-          const data = JSON.parse(payload.toString());
+    const data = JSON.parse(payload);
 
-          if (!rest.length) {
-            this.states[itemId] = {
-              state: data,
-            };
-          } else if (topic.endsWith('/motion')) {
-            this.states[itemId] = {
-              motionEnabled: data,
-            };
-          }
-        } catch (e) {
-          return console.error(e);
-        }
-      }
-    });
+    if (action === 'motion') {
+      this.states[itemId].motionEnabled = data;
+    } else {
+      this.states[itemId].state = data;
+    }
   }
 
   initData() {
